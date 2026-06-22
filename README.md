@@ -17,7 +17,7 @@ Record your real-world conversations, organize them around *people* — not time
 
 ---
 
-> 🚧 **Status: early development / design stage.** The design is settled (architecture, privacy model, roadmap); the code is just getting started. Star the repo to follow along.
+> 🚧 **Status: early development.** **M1 works today** — record → local transcription → simple UI. Building outward from there (see the roadmap). Star the repo to follow along.
 
 ## What is Rapport?
 
@@ -71,9 +71,32 @@ Others built memory search for your *digital* life. **Rapport is the understandi
 
 Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · Gradio → PyWebview desktop shell. **Windows first, macOS later.**
 
+## Quick start
+
+> **Python 3.10+** (3.12 recommended for the widest prebuilt-wheel coverage). Runs on **CPU by default — no GPU or CUDA required.**
+
+```bash
+git clone https://github.com/sssst1118/Rapport.git
+cd Rapport
+python -m venv .venv
+# Windows:        .venv\Scripts\activate
+# macOS / Linux:  source .venv/bin/activate
+pip install -e .            # or:  uv pip install -e .
+
+rapport transcribe path/to/audio.wav    # transcribe an audio file
+rapport ui                              # or launch the web UI
+```
+
+First run downloads a small Whisper model. Choose a model size or enable GPU via env vars:
+
+```bash
+RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small | medium | large-v3
+RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU (needs CUDA runtime libs)
+```
+
 ## Roadmap
 
-- [ ] **M1** — Record + local transcription + simple UI
+- [x] **M1** — Record + local transcription + simple UI ✅
 - [ ] **M2** — Speaker diarization + local storage
 - [ ] **M3** — People-centric views + annotations
 - [ ] **M4** — On-demand Q&A (RAG)
