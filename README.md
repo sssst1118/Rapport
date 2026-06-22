@@ -59,6 +59,14 @@ Record → local transcription → split & label speakers → encrypted local st
 
 Rapport also exposes your data to the AI tools you already use, through a **local REST API + MCP server** — ask Claude Desktop *"remind me what I last talked about with Alex"* and it pulls from your local Rapport store. The data never leaves your machine.
 
+## The bigger idea: a human-context layer for your AI
+
+An AI becomes a *real* assistant not by talking well, but by two things: **knowing your real context**, and **being able to act on it**.
+
+Rapport owns the most private, hardest-to-get slice of that context — **your real relationships and conversations with the people around you** — and hands it, safely and on-device, to the AI tools you already use. So Claude or Cursor stop being clever strangers and start giving answers that actually fit your situation with the people in your life.
+
+Others built memory search for your *digital* life. **Rapport is the understanding layer for your *human* one.**
+
 ## Tech stack
 
 Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · Gradio → PyWebview desktop shell. **Windows first, macOS later.**
