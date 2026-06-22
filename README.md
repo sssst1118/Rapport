@@ -21,24 +21,18 @@ Record your real-world conversations, organize them around *people* — not time
 
 ## What is Rapport?
 
-So much daily stress comes from *rumination* after talking to people — *what did they mean by that? did I say the wrong thing?* Memory is fuzzy, so we fill the gaps with worry, and the worry feeds itself.
+Memory is fuzzy. After a conversation you keep an *impression* — and impressions drift: they fill in gaps, soften or sharpen, and quietly rewrite themselves over time.
 
-Rapport gives that an exit. It quietly records and transcribes your **face-to-face conversations**, organizes everything around the **people** in your life, and — **only when you ask** — helps you replay the facts, understand the other person, switch perspective, and let it go.
+Rapport keeps the **real record** instead. It records and transcribes your face-to-face conversations, organized around the **people** in your life, so you can go back to **what was actually said** — review it honestly, understand the other person, and see a moment from their side.
 
-It's a tool to help you **think more clearly, so you ruminate less.** A companion, not a watchdog.
+One idea underneath it all: **the truth of what happened beats whatever you happened to remember.**
 
-## Why Rapport?
+## What makes it different
 
-|  | Rapport | Limitless / Rewind | screenpipe |
-|---|---|---|---|
-| Captures | **Audio only** (smaller privacy surface) | Screen + audio + wearable | Screen + audio |
-| Organized around | **People** | Time | Time |
-| Data lives | **100% local by default** | Cloud | Local |
-| Open source | **Yes — AGPL-3.0, can't be acquired away** | Closed (acquired by Meta, 2025) | Source-available |
-| Works | **On demand — never interrupts** | 24/7 capture | 24/7 capture |
-| Hardware | **Your existing mic** | $99 pendant | — |
-
-Rapport is the **open alternative to Limitless / Granola** — but audio-only and person-centric.
+- **Always-on by design** — it keeps the *real* record, not just the moments you remembered to hit record.
+- **Audio, not screen** — your real-world, face-to-face conversations. Smaller footprint, sharper purpose.
+- **Organized around people, not time** — profiles, relationships, and perspective-switching, instead of an endless timeline.
+- **100% local & open source** — the only kind of always-on recorder worth trusting: the data never leaves your machine, and the code is yours to read.
 
 ## Privacy: 5 promises you can verify in the code
 
@@ -49,6 +43,8 @@ Rapport is the **open alternative to Limitless / Granola** — but audio-only an
 5. **Local AI optional** — run your questions through a local model (Ollama) so even the analysis stays on-device.
 
 Because the code is open, you can read exactly what listens to you. That turns *"trust us"* into *"trust the code."*
+
+> Rapport records real people. Recording-consent laws vary by region — everything stays on your device, but using it lawfully is on you.
 
 ## How it works
 
@@ -107,6 +103,7 @@ rapport devices            # list microphones (record --device N to pick one)
 
 - [x] **M1** — Record + local transcription + simple UI ✅
 - [x] **M2** — Local SQLite storage + full-text search + ingest ✅ *(diarization seam ready; pyannote optional)*
+- [ ] **Always-on capture** — continuous background recording (the real record, not just manual clips)
 - [ ] **M3** — People-centric views + annotations
 - [ ] **M4** — On-demand Q&A (RAG)
 - [ ] **M5** — Local REST API + MCP server + Windows packaging
