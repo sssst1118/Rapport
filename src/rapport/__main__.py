@@ -43,19 +43,38 @@ def _cmd_record(args: argparse.Namespace) -> int:
     """录音并保存到指定 WAV 文件。
 
     指定 --seconds 时录制固定时长；否则手动开关：按回车停止。
+    --device 可指定输入设备（索引或名称），不指定则用配置默认。
     """
+    from . import config
     from .audio.recorder import Recorder, record_to_wav
 
+    device = config._parse_device(args.device) if args.device else config.INPUT_DEVICE
+
     if args.seconds is not None:
-        record_to_wav(args.file, args.seconds)
+        record_to_wav(args.file, args.seconds, device=device)
     else:
-        recorder = Recorder()
+        recorder = Recorder(device=device)
         recorder.start()
         try:
             input("按回车停止录音…")
         finally:
             recorder.stop(args.file)
     print(f"已保存录音：{args.file}")
+    return 0
+
+
+def _cmd_devices(args: argparse.Namespace) -> int:
+    """列出可用录音输入设备。"""
+    from . import config
+    from .audio.recorder import list_input_devices
+
+    print("可用录音输入设备（索引  名称）：")
+    for idx, name in list_input_devices():
+        print(f"  {idx:3d}  {name}")
+    current = config.INPUT_DEVICE if config.INPUT_DEVICE is not None else "系统默认"
+    print(f"\n当前选用：{current}")
+    print("用法：rapport record out.wav --seconds 5 --device 2  （--device 也可填设备名）")
+    print("或设环境变量：RAPPORT_INPUT_DEVICE=2")
     return 0
 
 
@@ -82,9 +101,17 @@ def _build_parser() -> argparse.ArgumentParser:
         "--seconds",
         type=float,
         default=None,
-        help="录音时长（秒）；不指定时由录音实现决定其默认行为",
+        help="录音时长（秒）；不指定则手动开关（按回车停止）",
+    )
+    p_rec.add_argument(
+        "--device",
+        default=None,
+        help="输入设备索引或名称（默认配置/系统默认；见 rapport devices）",
     )
     p_rec.set_defaults(func=_cmd_record)
+
+    p_dev = subparsers.add_parser("devices", help="列出可用录音输入设备")
+    p_dev.set_defaults(func=_cmd_devices)
 
     return parser
 

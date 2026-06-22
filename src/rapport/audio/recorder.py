@@ -25,6 +25,7 @@ def record_to_wav(
     duration_s: float,
     samplerate: int = config.SAMPLE_RATE,
     channels: int = config.CHANNELS,
+    device: int | str | None = config.INPUT_DEVICE,
 ) -> Path:
     """录制固定时长的麦克风音频并写入 WAV 文件。
 
@@ -52,7 +53,9 @@ def record_to_wav(
     frames = int(round(duration_s * samplerate))
 
     print(f"{_RECORDING_HINT}（{duration_s:g}s，{samplerate}Hz/{channels}ch）", flush=True)
-    audio = sd.rec(frames, samplerate=samplerate, channels=channels, dtype="float32")
+    audio = sd.rec(
+        frames, samplerate=samplerate, channels=channels, dtype="float32", device=device
+    )
     sd.wait()  # 阻塞到录制结束
     print("■ 录音结束", flush=True)  # ■ 录音结束
 
@@ -71,15 +74,18 @@ class Recorder:
         self,
         samplerate: int = config.SAMPLE_RATE,
         channels: int = config.CHANNELS,
+        device: int | str | None = config.INPUT_DEVICE,
     ) -> None:
         """初始化录音器。
 
         Args:
             samplerate: 采样率（Hz），默认取自 config.SAMPLE_RATE。
             channels: 声道数，默认取自 config.CHANNELS。
+            device: 输入设备（索引/名称/None），默认取自 config.INPUT_DEVICE。
         """
         self.samplerate = samplerate
         self.channels = channels
+        self.device = device
         self._stream = None  # sounddevice.InputStream，延迟创建
         self._frames: list = []  # 累积的音频块（numpy 数组）
 
@@ -111,6 +117,7 @@ class Recorder:
             samplerate=self.samplerate,
             channels=self.channels,
             dtype="float32",
+            device=self.device,
             callback=self._callback,
         )
         self._stream.start()
@@ -152,3 +159,18 @@ class Recorder:
 
         sf.write(str(out_path), audio, self.samplerate)
         return out_path
+
+
+def list_input_devices() -> list[tuple[int, str]]:
+    """列出所有可用的录音输入设备 (索引, 名称)。
+
+    Returns:
+        [(设备索引, 设备名), ...]，仅含可作输入（有麦克风通道）的设备。
+    """
+    import sounddevice as sd
+
+    return [
+        (i, d["name"])
+        for i, d in enumerate(sd.query_devices())
+        if d["max_input_channels"] > 0
+    ]

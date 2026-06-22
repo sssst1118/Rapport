@@ -29,6 +29,7 @@ def test_默认值(干净环境) -> None:
     assert cfg.WHISPER_COMPUTE_TYPE == "default"
     assert cfg.SAMPLE_RATE == 16000
     assert cfg.CHANNELS == 1
+    assert cfg.INPUT_DEVICE is None
     assert isinstance(cfg.DATA_DIR, Path)
 
 
@@ -73,4 +74,25 @@ def test_不支持的transcriber抛错(monkeypatch: pytest.MonkeyPatch) -> None:
             cfg.get_transcriber()
     finally:
         monkeypatch.delenv("RAPPORT_TRANSCRIBER", raising=False)
+        importlib.reload(config)
+
+
+def test_输入设备_数字字符串解析为索引(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RAPPORT_INPUT_DEVICE", "2")
+    cfg = importlib.reload(config)
+    try:
+        assert cfg.INPUT_DEVICE == 2
+        assert isinstance(cfg.INPUT_DEVICE, int)
+    finally:
+        monkeypatch.delenv("RAPPORT_INPUT_DEVICE", raising=False)
+        importlib.reload(config)
+
+
+def test_输入设备_名字保留为字符串(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RAPPORT_INPUT_DEVICE", "Realtek")
+    cfg = importlib.reload(config)
+    try:
+        assert cfg.INPUT_DEVICE == "Realtek"
+    finally:
+        monkeypatch.delenv("RAPPORT_INPUT_DEVICE", raising=False)
         importlib.reload(config)

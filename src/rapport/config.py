@@ -34,6 +34,19 @@ SAMPLE_RATE: int = int(_env("SAMPLE_RATE", "16000"))
 # 录音声道数。
 CHANNELS: int = int(_env("CHANNELS", "1"))
 
+
+def _parse_device(raw: str) -> int | str | None:
+    """解析输入设备配置：纯数字→设备索引(int)，非空→设备名(str)，空→None(系统默认)。"""
+    raw = raw.strip()
+    if not raw:
+        return None
+    return int(raw) if raw.lstrip("-").isdigit() else raw
+
+
+# 录音输入设备：空=系统默认；数字=设备索引；其他=设备名（子串匹配）。
+# 用 `rapport devices` 查看可选设备。注意：远程桌面(如 ToDesk)会把虚拟声卡设成默认。
+INPUT_DEVICE: int | str | None = _parse_device(_env("INPUT_DEVICE", ""))
+
 # 数据目录：默认指向仓库下 data/。
 # 本文件位于 src/rapport/config.py，仓库根为其上溯三级父目录。
 _REPO_ROOT = Path(__file__).resolve().parents[2]
