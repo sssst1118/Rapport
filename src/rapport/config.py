@@ -47,6 +47,19 @@ def _parse_device(raw: str) -> int | str | None:
 # 用 `rapport devices` 查看可选设备。注意：远程桌面(如 ToDesk)会把虚拟声卡设成默认。
 INPUT_DEVICE: int | str | None = _parse_device(_env("INPUT_DEVICE", ""))
 
+# 语言模型后端：none（默认，未配置）/ fake（看示例）/ anthropic / ollama。
+# 配 anthropic 时还需设置环境变量 ANTHROPIC_API_KEY。
+LLM_PROVIDER: str = _env("LLM_PROVIDER", "none")
+
+# 语言模型名：anthropic 默认 claude-opus-4-8（当前最强 Opus）。
+LLM_MODEL: str = _env("LLM_MODEL", "claude-opus-4-8")
+
+# Ollama（本地模型，数据不出设备，最贴产品调性）配置：
+# 模型默认指向常见的 qwen2.5:7b（中文强、支持结构化输出）；想换更强的本地模型
+# （如 qwen2.5:14b / qwen3）只改 RAPPORT_OLLAMA_MODEL。endpoint 默认本机 11434。
+OLLAMA_MODEL: str = _env("OLLAMA_MODEL", "qwen2.5:7b-instruct-q4_K_M")
+OLLAMA_HOST: str = _env("OLLAMA_HOST", "http://localhost:11434")
+
 # 数据目录：默认指向仓库下 data/。
 # 本文件位于 src/rapport/config.py，仓库根为其上溯三级父目录。
 _REPO_ROOT = Path(__file__).resolve().parents[2]

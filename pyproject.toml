@@ -18,6 +18,11 @@ dependencies = [
     "uvicorn[standard]",
 ]
 
+[project.optional-dependencies]
+# 语言模型后端（运行可选）：配 RAPPORT_LLM_PROVIDER=anthropic 时才需要。
+# 测试只用内置 fake provider，不 import anthropic。
+anthropic = ["anthropic"]
+
 [project.scripts]
 rapport = "rapport.__main__:main"
 

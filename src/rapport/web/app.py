@@ -28,6 +28,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel
 
+from ..analysis import AnalysisError, get_provider
+from ..analysis import analyze as _analyze
 from ..storage.db import Database
 
 # 仓库根：本文件位于 src/rapport/web/app.py，上溯四级父目录。
@@ -126,6 +128,19 @@ class _DbProxy:
 
         self._dbthread.call(_do)
 
+    def get_utterance(self, utterance_id: int) -> Any:
+        """按 id 取单条话语行（db.py 无对应公共方法，按只读 SQL 在工作线程内取）。
+
+        analysis 层做引用解析时要按 utterance_id 回查整行；db 连接被线程封闭，
+        不能从路由线程直接碰 _conn，故在工作线程里执行查询。
+        """
+        def _do(d: Database) -> Any:
+            return d._conn.execute(
+                "SELECT * FROM utterance WHERE id = ?", (utterance_id,)
+            ).fetchone()
+
+        return self._dbthread.call(_do)
+
 
 # ---- 请求体模型 ----------------------------------------------------------
 
@@ -176,17 +191,65 @@ class ReviewBody(BaseModel):
     id: int | None = None
 
 
-# ---- 解读占位信封（M4） -------------------------------------------------
+# ---- 解读信封（M4） -----------------------------------------------------
+#
+# 统一 Interpretation 信封（前端已冻结该类型）三态：
+# - needs_setup：未配置语言模型；
+# - ready：成功，data 带 {overview, findings:[{point, quotes:[Citation...]}]}；
+# - error：分析失败（AnalysisError），HTTP 仍 200，绝不 500。
+
+_NEEDS_SETUP_MSG = (
+    "未配置语言模型。设置 ANTHROPIC_API_KEY 并令 RAPPORT_LLM_PROVIDER=anthropic "
+    "即可启用解读（或 =fake 看示例）。"
+)
 
 
-def _pending_m4(message: str) -> dict[str, Any]:
-    """构造「解读尚未接入」的统一信封——永远 200，不是错误码。"""
+def _needs_setup() -> dict[str, Any]:
+    """未配置 provider 时的统一信封。"""
     return {
         "kind": "interpretation",
-        "status": "pending_m4",
+        "status": "needs_setup",
+        "message": _NEEDS_SETUP_MSG,
+        "data": None,
+    }
+
+
+def _ready(data: dict[str, Any]) -> dict[str, Any]:
+    """成功信封。data = {overview, findings:[{point, quotes:[Citation...]}]}。"""
+    return {
+        "kind": "interpretation",
+        "status": "ready",
+        "message": "",
+        "data": data,
+    }
+
+
+def _error(message: str) -> dict[str, Any]:
+    """失败信封（中文原因）；HTTP 仍 200，绝不 500。"""
+    return {
+        "kind": "interpretation",
+        "status": "error",
         "message": message,
         "data": None,
     }
+
+
+def _interpret(
+    db: Database, fn: Callable[..., dict[str, Any]], *args: Any
+) -> dict[str, Any]:
+    """跑一次按需分析并裹成 Interpretation 信封，吸收三态。
+
+    provider 经 get_provider() 取（每次取，故配置/测试 monkeypatch 即时生效）：
+    None → needs_setup；成功 → ready；AnalysisError → error（不 500）。
+    """
+    provider = get_provider()
+    if provider is None:
+        return _needs_setup()
+    try:
+        data = fn(db, provider, *args)
+    except AnalysisError as exc:
+        return _error(str(exc))
+    return _ready(data)
 
 
 # ---- 组合查询（web 层用现有 db 方法拼，不改 db.py） ----------------------
@@ -352,13 +415,13 @@ def create_app(
 
     @app.get("/api/people/{person_id}/analysis")
     def person_analysis(person_id: int) -> dict[str, Any]:
-        """人物分析（M4 占位）。"""
-        return _pending_m4("人物分析将在 M4 按需分析接入")
+        """人物分析：该人跨对话话语 → 沟通风格/在意什么/承诺待办（带原话出处）。"""
+        return _interpret(db, _analyze.analyze_person, person_id)
 
     @app.get("/api/people/{person_id}/brief")
     def person_brief(person_id: int) -> dict[str, Any]:
-        """见面前 brief（M4 占位）。"""
-        return _pending_m4("见面前 brief 将在 M4 按需分析接入")
+        """见面前 brief：该人跨对话话语 → 下次见面前该记得什么（带原话出处）。"""
+        return _interpret(db, _analyze.meeting_brief, person_id)
 
     # ---- 对话（事实） ---------------------------------------------------
 
@@ -422,8 +485,8 @@ def create_app(
 
     @app.get("/api/conversations/{conversation_id}/summary")
     def conversation_summary(conversation_id: int) -> dict[str, Any]:
-        """顶部摘要（M4 占位）。"""
-        return _pending_m4("顶部摘要将在 M4 按需分析接入")
+        """顶部摘要：该对话全部话语 → 聊了什么/关键结论/跟进（带原话出处）。"""
+        return _interpret(db, _analyze.summarize_conversation, conversation_id)
 
     @app.get("/api/conversations/{conversation_id}/audio")
     def conversation_audio(conversation_id: int, request: Request) -> Response:
@@ -478,8 +541,8 @@ def create_app(
 
     @app.post("/api/analyze")
     def analyze(body: AnalyzeBody) -> dict[str, Any]:
-        """划选几行→分析（M4 占位）。"""
-        return _pending_m4("划选分析将在 M4 按需分析接入")
+        """划选几行 → 就事论事的解读（带原话出处）。"""
+        return _interpret(db, _analyze.analyze_selection, body.utterance_ids)
 
     # ---- 关系图（事实：人物 + 共现推断的连线） --------------------------
 
@@ -519,13 +582,11 @@ def create_app(
 
     @app.post("/api/review")
     def review(body: ReviewBody) -> dict[str, Any]:
-        """复盘四步里的『你的视角 / 对方视角 / 接下来怎么做』（M4 占位）。
+        """复盘的『你的视角 / 对方视角 / 接下来怎么做』（带原话出处）。
 
         事实回放（第①步）由前端复用对话/话语真数据呈现，无需此端点。
         """
-        return _pending_m4(
-            "复盘的『你的视角 / 对方可能的视角 / 接下来怎么做』将在 M4 接入"
-        )
+        return _interpret(db, _analyze.review, body.scope, body.id)
 
     # ---- 静态托管（SPA，history fallback） ------------------------------
 

@@ -266,42 +266,46 @@ def test_加标注与删标注(seeded) -> None:
     assert all(a["id"] != aid for a in db.get_annotations(ids["u2"]))
 
 
-# ---- 解读占位（M4） -----------------------------------------------------
+# ---- 解读信封（M4）：默认未配置 provider → needs_setup -------------------
+#
+# M4 已把这 5 个解读端点接到按需分析。seeded 夹具不设 RAPPORT_LLM_PROVIDER，
+# 默认 none（未配置），故统一返回 needs_setup 信封（仍 200、data 为 None）。
+# ready / error 两态由 tests/test_analysis.py 用 fake provider 覆盖。
 
 
-def _assert_pending_m4(body) -> None:
+def _assert_needs_setup(body) -> None:
     assert body["kind"] == "interpretation"
-    assert body["status"] == "pending_m4"
+    assert body["status"] == "needs_setup"
     assert body["data"] is None
     assert isinstance(body["message"], str) and body["message"]
 
 
-def test_对话摘要占位信封(seeded) -> None:
+def test_对话摘要未配置时needs_setup(seeded) -> None:
     client, _, ids = seeded
     r = client.get(f"/api/conversations/{ids['cid']}/summary")
     assert r.status_code == 200
-    _assert_pending_m4(r.json())
+    _assert_needs_setup(r.json())
 
 
-def test_人物分析占位信封(seeded) -> None:
+def test_人物分析未配置时needs_setup(seeded) -> None:
     client, _, ids = seeded
     r = client.get(f"/api/people/{ids['wang']}/analysis")
     assert r.status_code == 200
-    _assert_pending_m4(r.json())
+    _assert_needs_setup(r.json())
 
 
-def test_见面前brief占位信封(seeded) -> None:
+def test_见面前brief未配置时needs_setup(seeded) -> None:
     client, _, ids = seeded
     r = client.get(f"/api/people/{ids['wang']}/brief")
     assert r.status_code == 200
-    _assert_pending_m4(r.json())
+    _assert_needs_setup(r.json())
 
 
-def test_划选分析占位信封(seeded) -> None:
+def test_划选分析未配置时needs_setup(seeded) -> None:
     client, _, ids = seeded
     r = client.post("/api/analyze", json={"utterance_ids": [ids["u1"], ids["u2"]]})
     assert r.status_code == 200
-    _assert_pending_m4(r.json())
+    _assert_needs_setup(r.json())
 
 
 # ---- 静态托管降级 -------------------------------------------------------

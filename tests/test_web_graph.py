@@ -46,10 +46,11 @@ def test_共现推断我与老王相连而小李孤立(client) -> None:
     assert all(ids["li"] not in (e["source"], e["target"]) for e in g["edges"])
 
 
-def test_复盘端点是解读占位(client) -> None:
+def test_复盘端点未配置时needs_setup(client) -> None:
     cl, _ = client
     r = cl.post("/api/review", json={"scope": "conversation", "id": 1})
     assert r.status_code == 200
     body = r.json()
     assert body["kind"] == "interpretation"
-    assert body["status"] == "pending_m4"
+    # 默认未配置语言模型，复盘端点返回 needs_setup 信封（仍 200）。
+    assert body["status"] == "needs_setup"

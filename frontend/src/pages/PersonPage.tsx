@@ -168,32 +168,15 @@ export function PersonPage() {
           className="space-y-3"
         >
           <p className="font-ui text-sm text-ink-soft">
-            以下解读将在 M4 接入，每条都会
-            <span className="text-iris">带原话出处、可回放</span>
+            以下解读由语言模型生成，
+            <span className="text-iris">每条都挂着原话出处、可回放</span>
             ——不脱离事实凭空生成。
           </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InterpretationCard
-              title="沟通风格"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-            <InterpretationCard
-              title="在意什么"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-            <InterpretationCard
-              title="承诺与待办"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-            <InterpretationCard
-              title="没了结的话头"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-          </div>
+          <InterpretationCard
+            title="人物分析"
+            interpretation={analysis.data}
+            loading={analysis.loading}
+          />
         </div>
       )}
 
@@ -206,21 +189,14 @@ export function PersonPage() {
           className="space-y-3"
         >
           <p className="font-ui text-sm text-ink-soft">
-            你和 {p.name} 的关系随时间如何变化，将在 M4 以
-            <span className="text-iris">带出处可回放</span>的方式呈现。
+            你和 {p.name} 的关系，
+            <span className="text-iris">基于你们的真实对话、带出处可回放</span>。
           </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InterpretationCard
-              title="关系随时间的变化"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-            <InterpretationCard
-              title="关系图"
-              interpretation={analysis.data}
-              loading={analysis.loading}
-            />
-          </div>
+          <InterpretationCard
+            title="你和 TA 的关系"
+            interpretation={analysis.data}
+            loading={analysis.loading}
+          />
         </div>
       )}
       {/* 复盘覆盖层（§10.6）：person 范围，①事实回放用该人跨对话发言 */}

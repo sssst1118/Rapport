@@ -42,7 +42,7 @@ const SAMPLE_PEOPLE = [
 
 const PENDING: Interpretation = {
   kind: 'interpretation',
-  status: 'pending_m4',
+  status: 'pending',
   message: '（示例）这里将显示对这段对话的解读与小结。',
   data: null,
 }
