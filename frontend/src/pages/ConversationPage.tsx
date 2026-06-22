@@ -37,6 +37,8 @@ import { LoadingBlock, EmptyState, ErrorState } from '../components/states'
 import { SummaryBand } from './conversation/SummaryBand'
 import { UtteranceRow } from './conversation/UtteranceRow'
 import { PersonPicker } from './conversation/PersonPicker'
+// M3 复盘模式（§10.6）：覆盖层，从本页「复盘」按钮打开
+import { ReviewOverlay } from './review/ReviewOverlay'
 
 export function ConversationPage() {
   const { id = '' } = useParams()
@@ -59,6 +61,9 @@ export function ConversationPage() {
   // —— 「就这段分析」结果（解读层，走 stub）——
   const [segment, setSegment] = useState<Interpretation | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
+
+  // —— M3 复盘模式（§10.6）：覆盖层开关 ——
+  const [reviewOpen, setReviewOpen] = useState(false)
 
   // 当前选中的句子（保持正文顺序）
   const orderedSelectedIds = useMemo(() => {
@@ -129,6 +134,11 @@ export function ConversationPage() {
       <PageHeader
         title={data.note?.trim() || '一段对话'}
         description={formatDateTime(data.started_at)}
+        actions={
+          <Button variant="secondary" onClick={() => setReviewOpen(true)}>
+            复盘
+          </Button>
+        }
       />
 
       {/* 真相锚：整段波形 */}
@@ -219,6 +229,16 @@ export function ConversationPage() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* M3 复盘模式（§10.6）：覆盖层，四步引导，事实回放用本对话真数据 */}
+      {reviewOpen && (
+        <ReviewOverlay
+          scope="conversation"
+          id={data.id}
+          title={data.note?.trim() || '一段对话'}
+          onClose={() => setReviewOpen(false)}
+        />
       )}
     </section>
   )

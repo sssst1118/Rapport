@@ -9,6 +9,7 @@ import type {
   Annotation,
   ConversationDetail,
   ConversationListItem,
+  GraphData,
   Interpretation,
   OkResult,
   PersonCreated,
@@ -16,6 +17,7 @@ import type {
   PersonListItem,
   PersonUtterance,
   RelabelResult,
+  ReviewScope,
   Status,
 } from './types'
 
@@ -152,3 +154,11 @@ export const analyze = (utteranceIds: number[]) =>
     method: 'POST',
     body: { utterance_ids: utteranceIds },
   })
+
+/* —— 关系图（事实：共现推断的关系网络）—— */
+export const getGraph = (signal?: AbortSignal) =>
+  request<GraphData>('/graph', { signal })
+
+/* —— 复盘（②你的视角/③对方视角/④接下来怎么做 = 解读，M4 占位）—— */
+export const review = (scope: ReviewScope, id?: number) =>
+  request<Interpretation>('/review', { method: 'POST', body: { scope, id } })

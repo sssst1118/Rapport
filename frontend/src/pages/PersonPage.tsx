@@ -27,6 +27,8 @@ import { InterpretationCard } from '../components/InterpretationCard'
 import { LoadingBlock, EmptyState, ErrorState } from '../components/states'
 import { PersonTabs, type PersonTab } from './people/PersonTabs'
 import { PersonHistoryList } from './people/PersonHistoryList'
+// M3 复盘模式（§10.6）：覆盖层，从本页「复盘」按钮以 person 范围打开
+import { ReviewOverlay } from './review/ReviewOverlay'
 
 type TabKey = 'history' | 'analysis' | 'relation'
 
@@ -43,6 +45,8 @@ export function PersonPage() {
   const analysis = useAsync((s) => getPersonAnalysis(id, s), [id])
 
   const [tab, setTab] = useState<TabKey>('history')
+  // 复盘覆盖层开关（§10.6，person 范围）
+  const [reviewOpen, setReviewOpen] = useState(false)
   // 见面前 brief：默认不拉，点开「准备见面」时才请求（按需，且更显眼）
   const [briefOpen, setBriefOpen] = useState(false)
   const brief = useAsync(
@@ -61,7 +65,7 @@ export function PersonPage() {
       {/* 头部名片：大头像 + 名字（记录体）+ 关系 + 计数（等宽） */}
       <header className="mb-6 flex items-center gap-4">
         <Avatar person={p} size={64} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="font-record text-2xl font-semibold tracking-tight text-ink">
             {p.name}
           </h1>
@@ -71,6 +75,13 @@ export function PersonPage() {
             <span className="font-mono"> {p.utterance_count}</span> 句
           </p>
         </div>
+        <Button
+          variant="secondary"
+          className="shrink-0"
+          onClick={() => setReviewOpen(true)}
+        >
+          复盘
+        </Button>
       </header>
 
       {/* 见面前 brief：§10.3 显眼入口。解读层（M4），点开才拉 */}
@@ -211,6 +222,15 @@ export function PersonPage() {
             />
           </div>
         </div>
+      )}
+      {/* 复盘覆盖层（§10.6）：person 范围，①事实回放用该人跨对话发言 */}
+      {reviewOpen && (
+        <ReviewOverlay
+          scope="person"
+          id={p.id}
+          title={p.name}
+          onClose={() => setReviewOpen(false)}
+        />
       )}
     </section>
   )

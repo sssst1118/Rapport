@@ -116,3 +116,29 @@ export interface OkResult {
 export interface RelabelResult {
   updated: number
 }
+
+/** GET /api/graph 的节点（一个人） */
+export interface GraphNode {
+  id: number
+  name: string
+  relation: string | null
+  utterance_count: number
+  conversation_count: number
+}
+
+/** GET /api/graph 的连线（两人共同在场推断的关系） */
+export interface GraphEdge {
+  source: number
+  target: number
+  /** 共同在场的对话数，越大关系越近/越新 */
+  weight: number
+}
+
+/** GET /api/graph 关系网络 */
+export interface GraphData {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+/** 复盘范围：一段对话 / 一个人 / 某一天 */
+export type ReviewScope = 'conversation' | 'person' | 'day'

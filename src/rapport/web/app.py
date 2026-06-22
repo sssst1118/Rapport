@@ -19,6 +19,7 @@ import sqlite3
 import threading
 from concurrent.futures import Future
 from contextlib import asynccontextmanager
+from itertools import combinations
 from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, TypeVar
@@ -166,6 +167,13 @@ class AnalyzeBody(BaseModel):
     """划选分析请求体。"""
 
     utterance_ids: list[int] = []
+
+
+class ReviewBody(BaseModel):
+    """复盘请求体。scope 取 'conversation' | 'person' | 'day'。"""
+
+    scope: str
+    id: int | None = None
 
 
 # ---- 解读占位信封（M4） -------------------------------------------------
@@ -472,6 +480,52 @@ def create_app(
     def analyze(body: AnalyzeBody) -> dict[str, Any]:
         """划选几行→分析（M4 占位）。"""
         return _pending_m4("划选分析将在 M4 按需分析接入")
+
+    # ---- 关系图（事实：人物 + 共现推断的连线） --------------------------
+
+    @app.get("/api/graph")
+    def graph() -> dict[str, Any]:
+        """关系网络：节点=人物，连线=同一段对话同时在场 → 推断彼此认识（§10.5）。
+
+        连线权重 = 两人共同在场的对话数；每个节点带话语数/对话数，供前端按互动量
+        定节点大小、按连线粗细表达亲密/新近。这是从真实记录里「白捡」的关系，
+        不是模型脑补——属事实层。
+        """
+        nodes = []
+        for p in db.list_persons():
+            utts = db.get_utterances_for_person(p["id"])
+            conv_ids = {u["conversation_id"] for u in utts}
+            nodes.append(
+                {
+                    "id": p["id"],
+                    "name": p["name"],
+                    "relation": p["relation"],
+                    "utterance_count": len(utts),
+                    "conversation_count": len(conv_ids),
+                }
+            )
+        pair_weight: dict[tuple[int, int], int] = {}
+        for c in db.list_conversations():
+            ids = sorted({p["id"] for p in db.get_persons_in_conversation(c["id"])})
+            for a, b in combinations(ids, 2):
+                pair_weight[(a, b)] = pair_weight.get((a, b), 0) + 1
+        edges = [
+            {"source": a, "target": b, "weight": w}
+            for (a, b), w in pair_weight.items()
+        ]
+        return {"nodes": nodes, "edges": edges}
+
+    # ---- 解读：复盘（M4 占位） ------------------------------------------
+
+    @app.post("/api/review")
+    def review(body: ReviewBody) -> dict[str, Any]:
+        """复盘四步里的『你的视角 / 对方视角 / 接下来怎么做』（M4 占位）。
+
+        事实回放（第①步）由前端复用对话/话语真数据呈现，无需此端点。
+        """
+        return _pending_m4(
+            "复盘的『你的视角 / 对方可能的视角 / 接下来怎么做』将在 M4 接入"
+        )
 
     # ---- 静态托管（SPA，history fallback） ------------------------------
 

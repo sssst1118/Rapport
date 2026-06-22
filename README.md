@@ -17,7 +17,7 @@ Record your real-world conversations, organize them around *people* — not time
 
 ---
 
-> 🚧 **Status: early development.** **M1–M2 work today** — record → transcribe → store in a local SQLite DB → full-text search. Building outward (see the roadmap). Star the repo to follow along.
+> 🚧 **Status: early development.** **M1–M3 work today** — record → transcribe → local SQLite + full-text search, plus a people-centric desktop app (Today · conversation · people · relationship graph · review). On-demand AI Q&A is next (M4). Star the repo to follow along.
 
 ## Stop guessing where you stand
 
@@ -75,7 +75,7 @@ Others built memory search for your *digital* life. **Rapport is the understandi
 
 ## Tech stack
 
-Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · Gradio → PyWebview desktop shell. **Windows first, macOS later.**
+Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · React (Vite) SPA → PyWebview desktop shell. **Windows first, macOS later.**
 
 ## Quick start
 
@@ -114,10 +114,10 @@ rapport devices            # list microphones (record --device N to pick one)
 - [x] **M1** — Record + local transcription + simple UI ✅
 - [x] **M2** — Local SQLite storage + full-text search + ingest ✅ *(diarization seam ready; pyannote optional)*
 - [ ] **Always-on capture** — continuous background recording (the real record, not just manual clips)
-- [ ] **M3** — People-centric views + annotations
-- [ ] **M4** — On-demand Q&A (RAG)
+- [x] **M3** — People-centric desktop app + annotations ✅ *(FastAPI + React: Today · conversation · people · relationship graph · review; facts are live, AI analysis stubbed until M4)*
+- [ ] **M4** — On-demand Q&A (RAG) — the AI analysis behind summaries, profiles & perspective-switch
 - [ ] **M5** — Local REST API + MCP server + Windows packaging
-- [ ] **M6** — Relationship graph · voiceprint ID · local LLM · macOS
+- [ ] **M6** — Voiceprint ID · local LLM · macOS
 
 ## License
 
