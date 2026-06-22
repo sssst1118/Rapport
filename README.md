@@ -19,6 +19,16 @@ Record your real-world conversations, organize them around *people* — not time
 
 > 🚧 **Status: early development.** **M1–M2 work today** — record → transcribe → store in a local SQLite DB → full-text search. Building outward (see the roadmap). Star the repo to follow along.
 
+## Stop guessing where you stand
+
+- What does your **boss** really think of you?
+- Do the **people you lead** actually respect you?
+- Is the **person you're seeing** into it — or just being polite?
+
+You guess. Everyone guesses. Rapport means you don't have to.
+
+It keeps the **real record** of what was actually said — so you can replay the facts, see the moment from the other side, and get a straight answer to the question you couldn't crack. **Not mind-reading; just the truth, kept.**
+
 ## What is Rapport?
 
 Memory is fuzzy. After a conversation you keep an *impression* — and impressions drift: they fill in gaps, soften or sharpen, and quietly rewrite themselves over time.
