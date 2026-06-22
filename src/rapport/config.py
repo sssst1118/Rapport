@@ -52,6 +52,9 @@ INPUT_DEVICE: int | str | None = _parse_device(_env("INPUT_DEVICE", ""))
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR: Path = Path(_env("DATA_DIR", str(_REPO_ROOT / "data")))
 
+# SQLite 数据库路径：默认指向 DATA_DIR/rapport.db。
+DB_PATH: Path = Path(_env("DB_PATH", str(DATA_DIR / "rapport.db")))
+
 
 def get_transcriber() -> Transcriber:
     """按 TRANSCRIBER 配置返回对应的转写器实现。

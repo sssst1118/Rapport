@@ -4,6 +4,9 @@
     rapport ui                       启动 Gradio 界面。
     rapport transcribe FILE          转写音频文件并打印文本。
     rapport record FILE [--seconds N] 录音保存到 FILE。
+    rapport ingest FILE [--note N]   转写+分离并入库。
+    rapport show CONV_ID             打印某对话的全部话语。
+    rapport search QUERY             全文检索话语。
 
 入口函数 main 供 [project.scripts] 的 rapport=rapport.__main__:main 调用。
 重依赖（gradio / sounddevice / faster-whisper）均在各子命令内延迟触发。
@@ -78,6 +81,54 @@ def _cmd_devices(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_ingest(args: argparse.Namespace) -> int:
+    """转写+说话人分离一段音频并写入数据库。"""
+    from . import config
+    from .ingest import ingest_audio
+    from .storage.db import Database
+
+    db = Database(config.DB_PATH)
+    try:
+        cid = ingest_audio(args.file, db, note=args.note)
+        n = len(db.get_utterances(cid))
+    finally:
+        db.close()
+    print(f"对话 #{cid}，入库 {n} 句")
+    return 0
+
+
+def _cmd_show(args: argparse.Namespace) -> int:
+    """打印某对话下的全部话语（说话人标签 + 文本）。"""
+    from . import config
+    from .storage.db import Database
+
+    db = Database(config.DB_PATH)
+    try:
+        rows = db.get_utterances(args.conv_id)
+    finally:
+        db.close()
+    for row in rows:
+        label = row["speaker_label"] or "?"
+        print(f"[{label}] {row['text']}")
+    return 0
+
+
+def _cmd_search(args: argparse.Namespace) -> int:
+    """全文检索话语并打印命中结果。"""
+    from . import config
+    from .storage.db import Database
+
+    db = Database(config.DB_PATH)
+    try:
+        rows = db.search_utterances(args.query)
+    finally:
+        db.close()
+    for row in rows:
+        label = row["speaker_label"] or "?"
+        print(f"对话 #{row['conversation_id']} [{label}] {row['text']}")
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """构建命令行参数解析器。"""
     parser = argparse.ArgumentParser(
@@ -112,6 +163,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_dev = subparsers.add_parser("devices", help="列出可用录音输入设备")
     p_dev.set_defaults(func=_cmd_devices)
+
+    p_ing = subparsers.add_parser("ingest", help="转写+分离并入库")
+    p_ing.add_argument("file", help="音频文件路径")
+    p_ing.add_argument("--note", default=None, help="对话备注")
+    p_ing.set_defaults(func=_cmd_ingest)
+
+    p_show = subparsers.add_parser("show", help="打印某对话的全部话语")
+    p_show.add_argument("conv_id", type=int, help="对话 id")
+    p_show.set_defaults(func=_cmd_show)
+
+    p_search = subparsers.add_parser("search", help="全文检索话语")
+    p_search.add_argument("query", help="检索词")
+    p_search.set_defaults(func=_cmd_search)
 
     return parser
 
