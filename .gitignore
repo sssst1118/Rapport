@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ── Rapport: keep these local, never publish ──
+# internal design docs (产品设计方案 / 技术文档)
+docs/
+# recordings, profiles, local DB — sensitive user data
+data/
