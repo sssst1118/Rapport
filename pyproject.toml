@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rapport"
+version = "0.0.1"
+description = "开源、本地优先、以人为中心的人际对话助手"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faster-whisper",
+    "sounddevice",
+    "soundfile",
+    "gradio",
+    "numpy",
+]
+
+[project.scripts]
+rapport = "rapport.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rapport"]
