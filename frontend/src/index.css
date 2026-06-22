@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+
+/*
+ * 全局基线。Tailwind v4 下用 @layer base 写默认样式。
+ * 整个应用以「信笺」为底：暖燕麦底色 + 暖近黑正文 + 界面体。
+ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 可见的键盘焦点环（无障碍）。用 pine 作为焦点色，与品牌一致。 */
+  :focus-visible {
+    outline: 2px solid var(--pine);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--pine-soft) 35%, transparent);
+  }
+}
+
+/*
+ * —— 动效 —— 克制、有意义。
+ * 全部包在 @media (prefers-reduced-motion: no-preference) 内，
+ * 用户若偏好减少动效则一律不播放（无障碍硬要求）。
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* 转写行载入：轻微沉降 */
+  @keyframes record-settle {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 录制中波形「呼吸」 */
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scaleY(0.82);
+    }
+    50% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+
+  /* live 指示点心跳 */
+  @keyframes live-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 55%, transparent);
+    }
+    70% {
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--live) 0%, transparent);
+    }
+  }
+
+  .animate-record-settle {
+    animation: record-settle 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .animate-breathe {
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  .animate-live-pulse {
+    animation: live-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+/* 减少动效时，给出无害的占位类（保证 className 始终存在、不闪现） */
+@media (prefers-reduced-motion: reduce) {
+  .animate-record-settle,
+  .animate-breathe,
+  .animate-live-pulse {
+    animation: none;
+  }
+}

@@ -222,3 +222,8 @@ __marimo__/
 docs/
 # recordings, profiles, local DB — sensitive user data
 data/
+
+# 上面通用 Python 模板里的 `lib/` 规则会误伤前端源码目录 frontend/src/lib
+# （那不是 Python 的 lib，而是 personColor/format/useAsync 等共享件）——放行它
+!frontend/src/lib/
+!frontend/src/lib/**

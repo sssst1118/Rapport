@@ -1,0 +1,67 @@
+/*
+ * 设计系统：《记录与旁批》(Margin & Record) —— 全项目统一视觉基准
+ *
+ * 核心思想：把「事实与解读分离」这条硬原则编码进空间与排版。
+ *   事实层（转写记录）  = 温暖、权威、可信的「信笺」（paper / card / ink + 记录体）
+ *   解读层（AI / 批注）  = 视觉独立的「页边旁批」（iris / iris-tint + 括注边）
+ *   波形（pine）         = 反复出现的「真相锚」品牌印记
+ *
+ * 这里同时做两件事：
+ *   1) :root 暴露 CSS 变量（运行时可读、可被任意组件/内联样式引用）
+ *   2) @theme 把同一组值映射进 Tailwind，于是 bg-paper / text-ink / border-line 等
+ *      工具类可直接使用 —— 即「CSS 变量 + Tailwind theme 双向暴露」。
+ */
+
+:root {
+  /* —— 调色板 —— */
+  --ink: #221e1a;        /* 暖近黑，正文（事实） */
+  --ink-soft: #6b645b;   /* 次级文字 / 标签 */
+  --paper: #ebe6da;      /* 应用底色：暖燕麦 */
+  --card: #f6f2ea;       /* 抬升表面（卡片） */
+  --line: #dad3c4;       /* 暖色细分隔线 */
+  --pine: #1b5a4f;       /* 品牌 / 事实锚：波形、播放、主操作、录制 live */
+  --pine-soft: #5e9c90;  /* pine 次级 / hover */
+  --iris: #595395;       /* 解读层（AI 分析）专用色 */
+  --iris-tint: #eceaf4;  /* 解读卡背景 */
+  --live: #c8482f;       /* 仅用于录制中的指示点，别处不得复用 */
+
+  /* —— 圆角 —— 人性、非零圆角（避开报纸感） */
+  --radius-card: 10px;
+  --radius-sm: 8px;
+
+  /* —— 字族（三角色）—— */
+  /* 记录体：人说的话（转写正文、人名标题、引语）。霞鹜文楷 + Literata，温暖如手写信。 */
+  --font-record: 'Literata', 'LXGW WenKai Screen', 'LXGW WenKai', 'Noto Serif SC', serif;
+  /* 界面体：chrome / 按钮 / 标签 / 导航。安静、现代、退到后面。 */
+  --font-ui: 'Hanken Grotesk', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  /* 记录时刻体：数据（时间码、时长、说话人 A/B、计数）。等宽，机器记录的精确声音。 */
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
+}
+
+/*
+ * Tailwind v4：@theme 把上面的值登记为主题 token。
+ * 产生的工具类（节选）：
+ *   颜色  bg-paper / bg-card / bg-iris-tint / text-ink / text-ink-soft / text-pine / border-line ...
+ *   字体  font-record / font-ui / font-mono
+ *   圆角  rounded-card / rounded-sm
+ * 这些 token 的值仍指回 :root 的 CSS 变量，所以两侧永远同步。
+ */
+@theme {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-pine: var(--pine);
+  --color-pine-soft: var(--pine-soft);
+  --color-iris: var(--iris);
+  --color-iris-tint: var(--iris-tint);
+  --color-live: var(--live);
+
+  --font-record: var(--font-record);
+  --font-ui: var(--font-ui);
+  --font-mono: var(--font-mono);
+
+  --radius-card: var(--radius-card);
+  --radius-sm: var(--radius-sm);
+}

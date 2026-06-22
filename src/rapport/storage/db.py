@@ -208,6 +208,160 @@ class Database:
         )
         return cur.fetchall()
 
+    # ---- M3：以人为中心的查询 ------------------------------------------
+
+    def list_persons(self) -> list[sqlite3.Row]:
+        """列出全部人物，按更新时间倒序、id 倒序（最近活跃在前）。
+
+        Returns:
+            人物行列表。
+        """
+        cur = self._conn.execute(
+            "SELECT * FROM person ORDER BY updated_at DESC, id DESC"
+        )
+        return cur.fetchall()
+
+    def get_person(self, person_id: int) -> sqlite3.Row | None:
+        """按 id 取单个人物，不存在返回 None。
+
+        Args:
+            person_id: 人的 id。
+
+        Returns:
+            人物行，或 None。
+        """
+        cur = self._conn.execute(
+            "SELECT * FROM person WHERE id = ?", (person_id,)
+        )
+        return cur.fetchone()
+
+    def get_conversation(self, conversation_id: int) -> sqlite3.Row | None:
+        """按 id 取单个对话（含 audio_path、started_at、note），不存在返回 None。
+
+        Args:
+            conversation_id: 对话 id。
+
+        Returns:
+            对话行，或 None。
+        """
+        cur = self._conn.execute(
+            "SELECT * FROM conversation WHERE id = ?", (conversation_id,)
+        )
+        return cur.fetchone()
+
+    def list_conversations(self) -> list[sqlite3.Row]:
+        """列出全部对话，按开始时间倒序、id 倒序（最近优先）。
+
+        Returns:
+            对话行列表。
+        """
+        cur = self._conn.execute(
+            "SELECT * FROM conversation ORDER BY started_at DESC, id DESC"
+        )
+        return cur.fetchall()
+
+    def get_persons_in_conversation(self, conversation_id: int) -> list[sqlite3.Row]:
+        """取某对话里「在场的人」——有归属话语的去重人物，按首次开口先后排序。
+
+        Args:
+            conversation_id: 对话 id。
+
+        Returns:
+            人物行列表（无归属的话语不计入）。
+        """
+        cur = self._conn.execute(
+            "SELECT p.* FROM person p "
+            "JOIN utterance u ON u.person_id = p.id "
+            "WHERE u.conversation_id = ? "
+            "GROUP BY p.id "
+            "ORDER BY MIN(u.start_ms), p.id",
+            (conversation_id,),
+        )
+        return cur.fetchall()
+
+    # ---- 标注 ----------------------------------------------------------
+
+    def add_annotation(
+        self,
+        utterance_id: int,
+        type: str,
+        value: str | None = None,
+        person_id: int | None = None,
+    ) -> int:
+        """给某句话语加一条标注（type 取 'speaker' | 'tag' | 'note'），返回自增 id。
+
+        Args:
+            utterance_id: 被标注的话语 id。
+            type: 标注类型——说话人归属 / 标签 / 批注。
+            value: 标签内容或批注文字，可空。
+            person_id: 关联到的人 id（speaker 类型用），可空。
+
+        Returns:
+            新标注的 id。
+        """
+        cur = self._conn.execute(
+            "INSERT INTO annotation (utterance_id, person_id, type, value) "
+            "VALUES (?, ?, ?, ?)",
+            (utterance_id, person_id, type, value),
+        )
+        self._conn.commit()
+        return int(cur.lastrowid)
+
+    def get_annotations(self, utterance_id: int) -> list[sqlite3.Row]:
+        """取某句话语的全部标注，按创建时间、id 升序。
+
+        Args:
+            utterance_id: 话语 id。
+
+        Returns:
+            标注行列表。
+        """
+        cur = self._conn.execute(
+            "SELECT * FROM annotation WHERE utterance_id = ? "
+            "ORDER BY created_at, id",
+            (utterance_id,),
+        )
+        return cur.fetchall()
+
+    # ---- 话语编辑与说话人映射 ------------------------------------------
+
+    def update_utterance_text(self, utterance_id: int, text: str) -> None:
+        """编辑某句话语的转写文字（FTS 索引由触发器自动同步）。
+
+        Args:
+            utterance_id: 话语 id。
+            text: 新文字。
+        """
+        self._conn.execute(
+            "UPDATE utterance SET text = ? WHERE id = ?",
+            (text, utterance_id),
+        )
+        self._conn.commit()
+
+    def relabel_speaker(
+        self, conversation_id: int, speaker_label: str, person_id: int | None
+    ) -> int:
+        """把某对话里某个说话人标签（如 "A"）的全部话语一次性归到某人名下。
+
+        对应 §9.1「把这段里所有『说话人1』都变成老王」的快速映射，
+        只影响给定对话内的该标签，不跨对话。
+
+        Args:
+            conversation_id: 对话 id。
+            speaker_label: diarization 原始标签，如 "A"/"B"。
+            person_id: 目标人 id；None 表示取消归属。
+
+        Returns:
+            受影响的话语条数。
+        """
+        cur = self._conn.execute(
+            "UPDATE utterance SET person_id = ? "
+            "WHERE conversation_id = ? AND speaker_label = ?",
+            (person_id, conversation_id, speaker_label),
+        )
+        self._conn.commit()
+        return cur.rowcount
+
     # ---- 生命周期 ------------------------------------------------------
 
     def close(self) -> None:

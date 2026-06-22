@@ -7,6 +7,7 @@
     rapport ingest FILE [--note N]   转写+分离并入库。
     rapport show CONV_ID             打印某对话的全部话语。
     rapport search QUERY             全文检索话语。
+    rapport serve [--port 8000]      启动 FastAPI Web 后端。
 
 入口函数 main 供 [project.scripts] 的 rapport=rapport.__main__:main 调用。
 重依赖（gradio / sounddevice / faster-whisper）均在各子命令内延迟触发。
@@ -129,6 +130,31 @@ def _cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    """启动 FastAPI Web 后端（uvicorn）。
+
+    重依赖（fastapi/uvicorn）在此延迟导入，保持与其他子命令一致的风格。
+    --reload 时必须用 import string 让 uvicorn 接管重载，否则传 app 实例直接起。
+    """
+    import uvicorn
+
+    if args.reload:
+        # reload 模式必须给 uvicorn 一个 import string；用 --factory 指向应用工厂，
+        # 既能让子进程重新导入，又避开「子模块名 app 遮蔽默认实例」的坑。
+        uvicorn.run(
+            "rapport.web:create_app",
+            host=args.host,
+            port=args.port,
+            reload=True,
+            factory=True,
+        )
+    else:
+        from .web import create_app
+
+        uvicorn.run(create_app(), host=args.host, port=args.port)
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """构建命令行参数解析器。"""
     parser = argparse.ArgumentParser(
@@ -176,6 +202,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p_search = subparsers.add_parser("search", help="全文检索话语")
     p_search.add_argument("query", help="检索词")
     p_search.set_defaults(func=_cmd_search)
+
+    p_serve = subparsers.add_parser("serve", help="启动 FastAPI Web 后端")
+    p_serve.add_argument("--port", type=int, default=8000, help="监听端口（默认 8000）")
+    p_serve.add_argument(
+        "--host", default="127.0.0.1", help="监听地址（默认 127.0.0.1）"
+    )
+    p_serve.add_argument(
+        "--reload", action="store_true", help="开发模式：代码改动自动重载"
+    )
+    p_serve.set_defaults(func=_cmd_serve)
 
     return parser
 
