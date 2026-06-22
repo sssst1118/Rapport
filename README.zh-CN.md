@@ -17,7 +17,7 @@
 
 ---
 
-> 🚧 **状态：早期开发。** **M1 已经能跑了**——录音 → 本地转写 → 简易界面。正从这里往外扩（见路线图）。点个 Star 跟进进展。
+> 🚧 **状态：早期开发。** **M1–M2 已经能跑**——录音 → 转写 → 存进本地 SQLite → 全文检索。正从这里往外扩（见路线图）。点个 Star 跟进进展。
 
 ## Rapport 是什么？
 
@@ -94,10 +94,19 @@ RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small
 RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU（需 CUDA 运行库）
 ```
 
+把录音存进本地数据库，再浏览 / 检索：
+
+```bash
+rapport ingest audio.wav   # 转写 → 作为一段对话入库
+rapport show 1             # 打印某段对话
+rapport search "项目进度"   # 全文检索（中文需 ≥3 字）
+rapport devices            # 列出麦克风（record --device N 选设备）
+```
+
 ## 路线图
 
 - [x] **M1** —— 录音 + 本地转写 + 简易界面 ✅
-- [ ] **M2** —— 说话人分离 + 本地存储
+- [x] **M2** —— SQLite 本地存储 + 全文检索 + 入库 ✅ *(说话人分离 seam 已留；pyannote 可选)*
 - [ ] **M3** —— 以人为中心的视图 + 标注
 - [ ] **M4** —— 按需问答（RAG）
 - [ ] **M5** —— 本地 REST API + MCP server + Windows 打包

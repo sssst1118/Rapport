@@ -17,7 +17,7 @@ Record your real-world conversations, organize them around *people* — not time
 
 ---
 
-> 🚧 **Status: early development.** **M1 works today** — record → local transcription → simple UI. Building outward from there (see the roadmap). Star the repo to follow along.
+> 🚧 **Status: early development.** **M1–M2 work today** — record → transcribe → store in a local SQLite DB → full-text search. Building outward (see the roadmap). Star the repo to follow along.
 
 ## What is Rapport?
 
@@ -94,10 +94,19 @@ RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small
 RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU (needs CUDA runtime libs)
 ```
 
+Store a recording in your local database, then browse and search it:
+
+```bash
+rapport ingest audio.wav   # transcribe → store as a conversation
+rapport show 1             # print a conversation's lines
+rapport search "project"   # full-text search across everything
+rapport devices            # list microphones (record --device N to pick one)
+```
+
 ## Roadmap
 
 - [x] **M1** — Record + local transcription + simple UI ✅
-- [ ] **M2** — Speaker diarization + local storage
+- [x] **M2** — Local SQLite storage + full-text search + ingest ✅ *(diarization seam ready; pyannote optional)*
 - [ ] **M3** — People-centric views + annotations
 - [ ] **M4** — On-demand Q&A (RAG)
 - [ ] **M5** — Local REST API + MCP server + Windows packaging
