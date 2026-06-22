@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getPeople, createPerson } from '../../api/client'
 import type { PersonListItem } from '../../api/types'
 import { useAsync } from '../../lib/useAsync'
@@ -29,7 +30,7 @@ export interface PersonPickerProps {
   onPick: (personId: number | null) => void | Promise<void>
   /** 当前已归属的人物 id（高亮显示），未归属传 null */
   currentPersonId?: number | null
-  /** 标题，例如「这一行是谁说的？」或「把 A 映射到…」 */
+  /** 标题，例如「这一行是谁说的？」或「把 A 映射到…」；不传时回退到 picker.defaultTitle */
   title?: string
   /** 是否显示「设为未知 / 清除归属」项，默认 false */
   allowClear?: boolean
@@ -39,9 +40,12 @@ export function PersonPicker({
   onClose,
   onPick,
   currentPersonId = null,
-  title = '归属到谁？',
+  title,
   allowClear = false,
 }: PersonPickerProps) {
+  const { t } = useTranslation('conversation')
+  // 默认标题走 t()（hook 不能放进 props 默认值，故在此回退）
+  const heading = title ?? t('picker.defaultTitle')
   const people = useAsync((s) => getPeople(s), [])
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
@@ -109,7 +113,7 @@ export function PersonPicker({
       await onPick(created.id)
       onClose()
     } catch {
-      setCreateErr('新建失败，请重试')
+      setCreateErr(t('picker.createFailed'))
       setBusy(false)
     }
   }
@@ -129,13 +133,13 @@ export function PersonPicker({
     <div
       ref={rootRef}
       role="dialog"
-      aria-label={title}
+      aria-label={heading}
       className="absolute z-30 mt-1 w-64 rounded-card border border-line bg-paper p-2 shadow-lg"
       // 浮层属于「事实层 chrome」：用 paper/line，不沾 iris（那是解读层）
       onClick={(e) => e.stopPropagation()}
     >
       <p className="mb-1.5 px-1 font-ui text-xs font-medium text-ink-soft">
-        {title}
+        {heading}
       </p>
 
       <input
@@ -144,18 +148,18 @@ export function PersonPicker({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={onInputKeyDown}
-        placeholder="搜索或输入新名字…"
+        placeholder={t('picker.searchPlaceholder')}
         disabled={busy}
         className="mb-1.5 w-full rounded-sm border border-line bg-card px-2 py-1.5 font-ui text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-pine disabled:opacity-50"
       />
 
       <div className="max-h-56 overflow-y-auto">
         {people.loading && (
-          <p className="px-1 py-2 font-ui text-xs text-ink-soft">正在加载人物…</p>
+          <p className="px-1 py-2 font-ui text-xs text-ink-soft">{t('picker.loadingPeople')}</p>
         )}
         {people.error && (
           <p className="px-1 py-2 font-ui text-xs text-ink-soft">
-            取不到人物列表。
+            {t('picker.peopleError')}
           </p>
         )}
 
@@ -171,7 +175,7 @@ export function PersonPicker({
             <span className="inline-grid size-7 shrink-0 place-items-center rounded-full border border-dashed border-line text-ink-soft">
               ?
             </span>
-            设为未知（清除归属）
+            {t('picker.setUnknown')}
           </button>
         )}
 
@@ -194,19 +198,19 @@ export function PersonPicker({
                     {p.name}
                   </span>
                   <span className="block font-mono text-[11px] text-ink-soft">
-                    {p.utterance_count} 句
+                    {t('picker.personSentences', { count: p.utterance_count })}
                     {p.relation ? ` · ${p.relation}` : ''}
                   </span>
                 </span>
                 {active && (
-                  <span className="font-mono text-xs text-pine">当前</span>
+                  <span className="font-mono text-xs text-pine">{t('picker.current')}</span>
                 )}
               </button>
             )
           })}
 
         {!people.loading && !people.error && filtered.length === 0 && !canCreate && (
-          <p className="px-1 py-2 font-ui text-xs text-ink-soft">没有匹配的人。</p>
+          <p className="px-1 py-2 font-ui text-xs text-ink-soft">{t('picker.noMatch')}</p>
         )}
       </div>
 
@@ -220,7 +224,7 @@ export function PersonPicker({
           <span className="inline-grid size-7 shrink-0 place-items-center rounded-full bg-pine/10 text-base leading-none">
             +
           </span>
-          新建「{query.trim()}」
+          {t('picker.createNew', { name: query.trim() })}
         </button>
       )}
 
@@ -229,7 +233,7 @@ export function PersonPicker({
       )}
       {busy && (
         <p className="mt-1 px-1 font-ui text-xs text-ink-soft" aria-live="polite">
-          正在保存…
+          {t('picker.saving')}
         </p>
       )}
     </div>

@@ -1,0 +1,92 @@
+{
+  "list": {
+    "title": "人物",
+    "description": "你对话过的、以及你为之建档的人。点头像进入某人，以人为中心地回看。",
+    "newPerson": "＋ 新建人物",
+    "search": {
+      "label": "按名字或关系搜索",
+      "placeholder": "搜名字或关系…"
+    },
+    "sort": {
+      "groupLabel": "排序方式",
+      "recent": "最近",
+      "frequent": "高频",
+      "name": "名字"
+    },
+    "loading": "正在加载人物…",
+    "error": "取不到人物列表。",
+    "empty": {
+      "title": "还没有任何人物",
+      "hint": "对话里的说话人被归属后会出现在这里；线下认识的人也可以「新建人物」先建档。"
+    },
+    "noMatch": {
+      "title": "没有匹配的人物",
+      "hint": "换个名字或关系试试。"
+    },
+    "card": {
+      "noRelation": "未标注关系",
+      "utteranceCount_one": "句",
+      "utteranceCount_other": "句",
+      "m4Title": "承诺 / 待跟进将在 M4 接入"
+    }
+  },
+  "detail": {
+    "loading": "正在加载人物…",
+    "error": "打不开这个人。",
+    "noRelation": "未标注关系",
+    "conversationCount_one": "段对话",
+    "conversationCount_other": "段对话",
+    "utteranceCount_one": "句",
+    "utteranceCount_other": "句",
+    "review": "复盘",
+    "brief": {
+      "title": "见面前的简报",
+      "subtitle": "快见到 {{name}} 之前，先快速回顾要点与未了结的话头。",
+      "cta": "准备见面 →"
+    },
+    "history": {
+      "loading": "正在加载对话历史…",
+      "error": "取不到这个人的对话历史。",
+      "emptyTitle": "还没有归属到此人的发言",
+      "emptyHint": "在对话里把某个说话人归属到 TA 之后，这里会出现 TA 说过的话。"
+    },
+    "analysis": {
+      "note": "以下解读由语言模型生成，",
+      "noteEmphasis": "每条都挂着原话出处、可回放",
+      "noteTail": "——不脱离事实凭空生成。",
+      "cardTitle": "人物分析"
+    },
+    "relation": {
+      "note": "你和 {{name}} 的关系，",
+      "noteEmphasis": "基于你们的真实对话、带出处可回放",
+      "noteTail": "。",
+      "cardTitle": "你和 TA 的关系"
+    }
+  },
+  "create": {
+    "title": "新建人物",
+    "description": "线下认识、还没在对话里出现过的人，可以先在这里建档。",
+    "nameLabel": "名字",
+    "namePlaceholder": "例如：老王",
+    "relationLabel": "关系",
+    "relationOptional": "（可选）",
+    "relationPlaceholder": "例如：同事 / 朋友 / 客户",
+    "nameRequired": "名字不能为空。",
+    "failed": "创建失败，请重试。",
+    "cancel": "取消",
+    "submit": "创建",
+    "submitting": "创建中…"
+  },
+  "tabs": {
+    "ariaLabel": "人物视图",
+    "history": "对话历史",
+    "analysis": "人物分析",
+    "relation": "你和TA的关系"
+  },
+  "historyList": {
+    "untitled": "一段对话",
+    "sentenceCount_one": "句",
+    "sentenceCount_other": "句",
+    "enter": "进入对话 →"
+  }
+}

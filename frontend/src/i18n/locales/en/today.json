@@ -1,0 +1,60 @@
+{
+  "header": {
+    "title": "Today",
+    "description": "Who you spoke with today. Each one is a record you can replay and annotate."
+  },
+  "loading": "Loading conversations…",
+  "error": "Can't reach your conversations right now.",
+  "empty": {
+    "title": "No conversations yet",
+    "hint": "Once you start recording, the people you talk with today will show up here."
+  },
+  "group": {
+    "count_one": "{{count}} talk",
+    "count_other": "{{count}} talks"
+  },
+  "relativeDay": {
+    "unknown": "Unknown date",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "beforeYesterday": "Two days ago",
+    "weekday": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    }
+  },
+  "heatmap": {
+    "recentWeeks": "Last {{count}} weeks",
+    "legend": "The darker the day, the more you talked",
+    "emptyLegend": "Nothing yet — this lights up once you start recording",
+    "weekdayMark": {
+      "1": "M",
+      "3": "W",
+      "5": "F"
+    },
+    "cellTitle_one": "{{date}} · {{count}} conversation",
+    "cellTitle_other": "{{date}} · {{count}} conversations"
+  },
+  "beforeMeeting": {
+    "title": "Before you meet, take a look back",
+    "hint": "Open their page and see what you talked about last time.",
+    "cta": "To People →"
+  },
+  "card": {
+    "pending": "Speakers to confirm",
+    "pendingHint": "Open it to map speakers to people, and the conversation falls into place.",
+    "pendingNote": "Tap to name the speakers and open this conversation",
+    "noNote": "(No note)",
+    "namesOverflow": "and {{count}} others",
+    "moreParticipants": "+{{count}}",
+    "viewPerson": "View {{name}}",
+    "utteranceCount_one": "{{count}} line",
+    "utteranceCount_other": "{{count}} lines",
+    "hasAudio": "Audio"
+  }
+}

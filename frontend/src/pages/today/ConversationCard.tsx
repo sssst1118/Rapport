@@ -12,6 +12,7 @@
  */
 
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { ConversationListItem } from '../../api/types'
 import { Avatar } from '../../components/Avatar'
 import { formatClock } from './dateUtils'
@@ -23,9 +24,13 @@ interface ConversationCardProps {
 }
 
 export function ConversationCard({ conversation: c, emphasized }: ConversationCardProps) {
+  const { t, i18n } = useTranslation('today')
   const pending = c.participants.length === 0
   const shown = c.participants.slice(0, 4)
   const overflow = c.participants.length - shown.length
+  // 名字之间的分隔符随语言而变（中文顿号 / 英文逗号），避免英文里出现「、」
+  const nameSep = i18n.language.startsWith('zh') ? '、' : ', '
+  const names = c.participants.map((p) => p.name).slice(0, 2).join(nameSep)
 
   return (
     <div
@@ -41,7 +46,7 @@ export function ConversationCard({ conversation: c, emphasized }: ConversationCa
         <div className="flex min-w-0 items-center gap-2">
           {pending ? (
             <span className="inline-flex h-[26px] items-center gap-1.5 rounded-full border border-dashed border-line px-2 font-ui text-xs text-ink-soft">
-              说话人待确认
+              {t('card.pending')}
             </span>
           ) : (
             <>
@@ -52,7 +57,7 @@ export function ConversationCard({ conversation: c, emphasized }: ConversationCa
                   <Link
                     key={p.id}
                     to={`/people/${p.id}`}
-                    title={`查看 ${p.name}`}
+                    title={t('card.viewPerson', { name: p.name })}
                     className="relative z-10 rounded-full ring-2 ring-card transition-transform hover:scale-110"
                   >
                     <Avatar person={p} size={26} />
@@ -66,17 +71,18 @@ export function ConversationCard({ conversation: c, emphasized }: ConversationCa
               </div>
               {/* 名字（最多两个，多了省略） */}
               <span className="truncate font-record text-sm text-ink">
-                {c.participants.map((p) => p.name).slice(0, 2).join('、')}
-                {c.participants.length > 2 && ` 等 ${c.participants.length} 人`}
+                {names}
+                {c.participants.length > 2 &&
+                  ` ${t('card.namesOverflow', { count: c.participants.length })}`}
               </span>
             </>
           )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2 pt-0.5 font-mono text-xs text-ink-soft">
-          <span>{formatClock(c.started_at)}</span>
+          <span>{formatClock(c.started_at, i18n.language)}</span>
           <span aria-hidden="true">·</span>
-          <span>{c.utterance_count} 句</span>
+          <span>{t('card.utteranceCount', { count: c.utterance_count })}</span>
         </div>
       </div>
 
@@ -86,7 +92,7 @@ export function ConversationCard({ conversation: c, emphasized }: ConversationCa
         className="mt-2.5 block font-record text-base text-ink before:absolute before:inset-0 before:content-['']"
       >
         <span className="relative">
-          {c.note?.trim() || (pending ? '点此认人并查看这段对话' : '（无备注）')}
+          {c.note?.trim() || (pending ? t('card.pendingNote') : t('card.noNote'))}
         </span>
       </Link>
 
@@ -108,12 +114,12 @@ export function ConversationCard({ conversation: c, emphasized }: ConversationCa
                 />
               ))}
             </svg>
-            有音频
+            {t('card.hasAudio')}
           </span>
         )}
         {pending && (
           <span className="relative z-10 font-ui text-xs text-ink-soft">
-            点开把说话人映射到人，对话就归位了。
+            {t('card.pendingHint')}
           </span>
         )}
       </div>

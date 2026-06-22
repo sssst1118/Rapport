@@ -13,8 +13,8 @@ export type GroupKey = 'self' | 'family' | 'work' | 'other'
 
 export interface GroupStyle {
   key: GroupKey
-  /** 人类可读名（图例用） */
-  label: string
+  /** 图例文案的 i18n key（graph 命名空间下，由组件层 t() 渲染） */
+  labelKey: string
   /** 描边/标识色 —— 低反差暖色，HSL 字符串 */
   stroke: string
 }
@@ -35,13 +35,13 @@ const WORK_WORDS = [
 /** 群组配色 —— 三个暖色相，饱和度/亮度收窄以贴合燕麦信笺。 */
 const GROUP_STYLES: Record<GroupKey, GroupStyle> = {
   // 「我」用品牌 pine 描边，作为真相锚的延伸
-  self: { key: 'self', label: '我', stroke: 'var(--pine)' },
+  self: { key: 'self', labelKey: 'legend.self', stroke: 'var(--pine)' },
   // 家人：暖橙
-  family: { key: 'family', label: '家人', stroke: 'hsl(28 48% 52%)' },
+  family: { key: 'family', labelKey: 'legend.family', stroke: 'hsl(28 48% 52%)' },
   // 同事·工作：暖青绿（与 pine 同温区但区分得开）
-  work: { key: 'work', label: '同事 · 工作', stroke: 'hsl(168 34% 44%)' },
+  work: { key: 'work', labelKey: 'legend.work', stroke: 'hsl(168 34% 44%)' },
   // 其他 / 拿不准：中性暖灰，让 personColor 自己说话
-  other: { key: 'other', label: '其他', stroke: 'hsl(38 16% 58%)' },
+  other: { key: 'other', labelKey: 'legend.other', stroke: 'hsl(38 16% 58%)' },
 }
 
 /**

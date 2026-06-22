@@ -137,20 +137,41 @@ export const addAnnotation = (
 export const deleteAnnotation = (id: number | string) =>
   request<OkResult>(`/annotations/${id}`, { method: 'DELETE' })
 
-/* —— 解读层（M4 才真正产出，现在统一返回 pending_m4 信封）—— */
+/** 当前界面语言：读 i18n 写入 localStorage 的 rapport-lang（回退浏览器语言/英文）。
+ *  解读类请求据此带 ?lang=，让模型用与界面一致的语言产出解读。 */
+function langParam(): string {
+  try {
+    const saved = localStorage.getItem('rapport-lang')
+    if (saved === 'en' || saved === 'zh') return saved
+  } catch {
+    /* localStorage 不可用：回退到浏览器语言 */
+  }
+  return typeof navigator !== 'undefined' &&
+    navigator.language?.startsWith('zh')
+    ? 'zh'
+    : 'en'
+}
+
+/* —— 解读层（解读输出语言跟随界面 ?lang=）—— */
 export const getConversationSummary = (
   id: number | string,
   signal?: AbortSignal,
-) => request<Interpretation>(`/conversations/${id}/summary`, { signal })
+) =>
+  request<Interpretation>(
+    `/conversations/${id}/summary?lang=${langParam()}`,
+    { signal },
+  )
 
 export const getPersonAnalysis = (id: number | string, signal?: AbortSignal) =>
-  request<Interpretation>(`/people/${id}/analysis`, { signal })
+  request<Interpretation>(`/people/${id}/analysis?lang=${langParam()}`, {
+    signal,
+  })
 
 export const getPersonBrief = (id: number | string, signal?: AbortSignal) =>
-  request<Interpretation>(`/people/${id}/brief`, { signal })
+  request<Interpretation>(`/people/${id}/brief?lang=${langParam()}`, { signal })
 
 export const analyze = (utteranceIds: number[]) =>
-  request<Interpretation>('/analyze', {
+  request<Interpretation>(`/analyze?lang=${langParam()}`, {
     method: 'POST',
     body: { utterance_ids: utteranceIds },
   })
@@ -161,4 +182,7 @@ export const getGraph = (signal?: AbortSignal) =>
 
 /* —— 复盘（②你的视角/③对方视角/④接下来怎么做 = 解读，M4 占位）—— */
 export const review = (scope: ReviewScope, id?: number) =>
-  request<Interpretation>('/review', { method: 'POST', body: { scope, id } })
+  request<Interpretation>(`/review?lang=${langParam()}`, {
+    method: 'POST',
+    body: { scope, id },
+  })

@@ -9,6 +9,7 @@
  */
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import type { PersonListItem } from '../api/types'
 import { getPeople } from '../api/client'
@@ -22,10 +23,11 @@ import { PersonCreateDialog } from './people/PersonCreateDialog'
 /** 排序方式：最近（人物 id 越大越新）/ 高频（句数）/ 名字（本地序）。 */
 type SortKey = 'recent' | 'frequent' | 'name'
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'recent', label: '最近' },
-  { key: 'frequent', label: '高频' },
-  { key: 'name', label: '名字' },
+/** 排序项：label 走 i18n（people:list.sort.<key>），运行时再翻译 */
+const SORTS: { key: SortKey }[] = [
+  { key: 'recent' },
+  { key: 'frequent' },
+  { key: 'name' },
 ]
 
 function sortPeople(list: PersonListItem[], sort: SortKey): PersonListItem[] {
@@ -48,6 +50,7 @@ function sortPeople(list: PersonListItem[], sort: SortKey): PersonListItem[] {
 }
 
 export function PeoplePage() {
+  const { t } = useTranslation('people')
   const { data, loading, error, reload } = useAsync((s) => getPeople(s), [])
   const navigate = useNavigate()
 
@@ -72,11 +75,11 @@ export function PeoplePage() {
   return (
     <section>
       <PageHeader
-        title="人物"
-        description="你对话过的、以及你为之建档的人。点头像进入某人，以人为中心地回看。"
+        title={t('list.title')}
+        description={t('list.description')}
         actions={
           <Button variant="primary" onClick={() => setDialogOpen(true)}>
-            ＋ 新建人物
+            {t('list.newPerson')}
           </Button>
         }
       />
@@ -85,19 +88,19 @@ export function PeoplePage() {
       {!loading && !error && data && data.length > 0 && (
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label className="relative block sm:max-w-xs sm:flex-1">
-            <span className="sr-only">按名字或关系搜索</span>
+            <span className="sr-only">{t('list.search.label')}</span>
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜名字或关系…"
+              placeholder={t('list.search.placeholder')}
               className="w-full rounded-sm border border-line bg-card px-3 py-2 font-ui text-sm text-ink outline-none placeholder:text-ink-soft/50 focus:border-pine-soft"
             />
           </label>
 
           <div
             role="group"
-            aria-label="排序方式"
+            aria-label={t('list.sort.groupLabel')}
             className="flex shrink-0 items-center gap-1 rounded-sm border border-line bg-card p-0.5"
           >
             {SORTS.map((s) => {
@@ -114,7 +117,7 @@ export function PeoplePage() {
                       : 'text-ink-soft hover:text-ink'
                   }`}
                 >
-                  {s.label}
+                  {t(`list.sort.${s.key}`)}
                 </button>
               )
             })}
@@ -122,20 +125,20 @@ export function PeoplePage() {
         </div>
       )}
 
-      {loading && <LoadingBlock label="正在加载人物…" />}
+      {loading && <LoadingBlock label={t('list.loading')} />}
       {!loading && error && (
-        <ErrorState message="取不到人物列表。" onRetry={reload} />
+        <ErrorState message={t('list.error')} onRetry={reload} />
       )}
       {!loading && !error && data && data.length === 0 && (
         <EmptyState
-          title="还没有任何人物"
-          hint="对话里的说话人被归属后会出现在这里；线下认识的人也可以「新建人物」先建档。"
+          title={t('list.empty.title')}
+          hint={t('list.empty.hint')}
         />
       )}
 
       {/* 有数据、但被搜索过滤为空 */}
       {!loading && !error && data && data.length > 0 && shown.length === 0 && (
-        <EmptyState title="没有匹配的人物" hint="换个名字或关系试试。" />
+        <EmptyState title={t('list.noMatch.title')} hint={t('list.noMatch.hint')} />
       )}
 
       {!loading && !error && shown.length > 0 && (
@@ -152,8 +155,11 @@ export function PeoplePage() {
                     {p.name}
                   </p>
                   <p className="font-ui text-xs text-ink-soft">
-                    {p.relation || '未标注关系'} ·
-                    <span className="font-mono"> {p.utterance_count}</span> 句
+                    {p.relation || t('list.card.noRelation')} ·{' '}
+                    <span className="font-mono">{p.utterance_count}</span>{' '}
+                    {t('list.card.utteranceCount', {
+                      count: p.utterance_count,
+                    })}
                   </p>
                 </div>
 
@@ -163,7 +169,7 @@ export function PeoplePage() {
                  */}
                 <span
                   className="absolute right-3 top-3 flex items-center gap-1"
-                  title="承诺 / 待跟进将在 M4 接入"
+                  title={t('list.card.m4Title')}
                 >
                   <span
                     aria-hidden="true"

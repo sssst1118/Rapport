@@ -77,6 +77,7 @@ def _run(
     system: str,
     rows: list[Any],
     allowed_ids: set[int] | None = None,
+    lang: str = "zh",
 ) -> dict[str, Any]:
     """通用流水线：组装提示→调 provider→把引用解析成完整 Citation。
 
@@ -85,9 +86,19 @@ def _run(
     Args:
         allowed_ids: 若给定，引用只保留该集合内的 utterance_id（划选场景用，
             防止模型引到用户没选中的句子——挂的虽仍是真话，但越出了所选范围）。
+        lang: 解读输出语言，跟随界面语言（"en" 让模型用英文产出，其余默认中文）。
     """
     if not rows:
-        return {"overview": "范围内没有可供分析的话语。", "findings": []}
+        empty = (
+            "No utterances to analyze in this scope."
+            if lang == "en"
+            else "范围内没有可供分析的话语。"
+        )
+        return {"overview": empty, "findings": []}
+
+    # 让解读输出语言跟随界面（系统提示是中文，附一句英文指令即可切英文产出）。
+    if lang == "en":
+        system = system + "\n\nWrite the overview and every point in natural, concise English."
 
     user = (
         _format_utterances(db, rows)
@@ -176,7 +187,7 @@ def _get_utterance(db: Any, utterance_id: int) -> Any | None:
 
 
 def summarize_conversation(
-    db: Any, provider: Any, conversation_id: int
+    db: Any, provider: Any, conversation_id: int, lang: str = "zh"
 ) -> dict[str, Any]:
     """对话摘要：取该对话全部话语，给一段顶部概览与几条要点。"""
     rows = db.get_utterances(conversation_id)
@@ -184,10 +195,12 @@ def summarize_conversation(
         "你是人际对话助手。请基于下面这段对话，给出简短的顶部摘要："
         "聊了什么、关键结论、需要跟进的事。每条判断引用它依据的话语编号。"
     )
-    return _run(db, provider, system, list(rows))
+    return _run(db, provider, system, list(rows), lang=lang)
 
 
-def analyze_person(db: Any, provider: Any, person_id: int) -> dict[str, Any]:
+def analyze_person(
+    db: Any, provider: Any, person_id: int, lang: str = "zh"
+) -> dict[str, Any]:
     """人物分析：取该人跨对话全部话语，分析沟通风格 / 在意什么 / 承诺待办。"""
     rows = db.get_utterances_for_person(person_id)
     system = (
@@ -195,10 +208,12 @@ def analyze_person(db: Any, provider: Any, person_id: int) -> dict[str, Any]:
         "在意什么、做过哪些承诺或待办、有哪些没了结的话头。"
         "每条判断引用它依据的话语编号。"
     )
-    return _run(db, provider, system, list(rows))
+    return _run(db, provider, system, list(rows), lang=lang)
 
 
-def meeting_brief(db: Any, provider: Any, person_id: int) -> dict[str, Any]:
+def meeting_brief(
+    db: Any, provider: Any, person_id: int, lang: str = "zh"
+) -> dict[str, Any]:
     """见面前 brief：同样取该人跨对话话语，偏「下次见面前该记得什么」。"""
     rows = db.get_utterances_for_person(person_id)
     system = (
@@ -206,11 +221,11 @@ def meeting_brief(db: Any, provider: Any, person_id: int) -> dict[str, Any]:
         "上次聊到哪、有哪些待办或承诺要跟进、有哪些话题适合接着聊、有哪些雷区。"
         "每条判断引用它依据的话语编号。"
     )
-    return _run(db, provider, system, list(rows))
+    return _run(db, provider, system, list(rows), lang=lang)
 
 
 def analyze_selection(
-    db: Any, provider: Any, utterance_ids: list[int]
+    db: Any, provider: Any, utterance_ids: list[int], lang: str = "zh"
 ) -> dict[str, Any]:
     """划选分析：对给定的若干 utterance_id 做就事论事的解读。"""
     rows = [r for r in (_get_utterance(db, uid) for uid in utterance_ids) if r]
@@ -220,11 +235,11 @@ def analyze_selection(
         "对方可能的意思、言外之意、值得注意的地方。每条判断引用它依据的话语编号。"
     )
     # 收敛：划选场景下，引用只许落在用户实际选中的句子上。
-    return _run(db, provider, system, rows, allowed_ids=allowed)
+    return _run(db, provider, system, rows, allowed_ids=allowed, lang=lang)
 
 
 def review(
-    db: Any, provider: Any, scope: str, id: int | None
+    db: Any, provider: Any, scope: str, id: int | None, lang: str = "zh"
 ) -> dict[str, Any]:
     """复盘：对话或人物范围，给『你的视角 / 对方视角 / 接下来怎么做』。
 
@@ -243,4 +258,4 @@ def review(
         "你（说话人「我」）当时可能的视角、对方可能的视角、接下来可以怎么做。"
         "每条判断引用它依据的话语编号。"
     )
-    return _run(db, provider, system, rows)
+    return _run(db, provider, system, rows, lang=lang)

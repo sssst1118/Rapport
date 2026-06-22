@@ -12,6 +12,7 @@
  */
 
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { ConversationDetail } from '../../api/types'
 import { Avatar } from '../../components/Avatar'
 import { formatDateTime, formatTimecode } from '../../lib/format'
@@ -21,6 +22,7 @@ export interface SummaryBandProps {
 }
 
 export function SummaryBand({ data }: SummaryBandProps) {
+  const { t } = useTranslation('conversation')
   const us = data.utterances
   const sentenceCount = us.length
 
@@ -38,13 +40,13 @@ export function SummaryBand({ data }: SummaryBandProps) {
         {/* 参与者 */}
         <div className="flex flex-wrap items-center gap-2">
           {data.participants.length === 0 ? (
-            <span className="font-ui text-sm text-ink-soft">尚无归属的参与者</span>
+            <span className="font-ui text-sm text-ink-soft">{t('summary.noParticipants')}</span>
           ) : (
             data.participants.map((p) => (
               <Link
                 key={p.id}
                 to={`/people/${p.id}`}
-                title={`查看 ${p.name}`}
+                title={t('summary.viewPerson', { name: p.name })}
                 className="inline-flex items-center gap-1.5 rounded-full py-0.5 pr-2 pl-0.5 transition-colors hover:bg-ink/5"
               >
                 <Avatar person={p} size={26} />
@@ -57,15 +59,15 @@ export function SummaryBand({ data }: SummaryBandProps) {
         {/* 事实数值：时间 · 句数 · 时长 */}
         <dl className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-1 font-ui text-xs text-ink-soft">
           <div className="flex items-center gap-1.5">
-            <dt>发生于</dt>
+            <dt>{t('summary.occurredAt')}</dt>
             <dd className="text-ink">{formatDateTime(data.started_at)}</dd>
           </div>
           <div className="flex items-center gap-1.5">
-            <dt>句数</dt>
+            <dt>{t('summary.sentences')}</dt>
             <dd className="font-mono text-ink">{sentenceCount}</dd>
           </div>
           <div className="flex items-center gap-1.5">
-            <dt>时长</dt>
+            <dt>{t('summary.duration')}</dt>
             <dd className="font-mono text-ink">{formatTimecode(durationMs)}</dd>
           </div>
         </dl>

@@ -235,18 +235,22 @@ def _error(message: str) -> dict[str, Any]:
 
 
 def _interpret(
-    db: Database, fn: Callable[..., dict[str, Any]], *args: Any
+    db: Database,
+    fn: Callable[..., dict[str, Any]],
+    *args: Any,
+    lang: str = "zh",
 ) -> dict[str, Any]:
     """跑一次按需分析并裹成 Interpretation 信封，吸收三态。
 
     provider 经 get_provider() 取（每次取，故配置/测试 monkeypatch 即时生效）：
     None → needs_setup；成功 → ready；AnalysisError → error（不 500）。
+    lang 跟随界面语言（"en"/"zh"），让解读输出语言与界面一致。
     """
     provider = get_provider()
     if provider is None:
         return _needs_setup()
     try:
-        data = fn(db, provider, *args)
+        data = fn(db, provider, *args, lang=lang)
     except AnalysisError as exc:
         return _error(str(exc))
     return _ready(data)
@@ -414,14 +418,14 @@ def create_app(
         return rows
 
     @app.get("/api/people/{person_id}/analysis")
-    def person_analysis(person_id: int) -> dict[str, Any]:
+    def person_analysis(person_id: int, lang: str = "zh") -> dict[str, Any]:
         """人物分析：该人跨对话话语 → 沟通风格/在意什么/承诺待办（带原话出处）。"""
-        return _interpret(db, _analyze.analyze_person, person_id)
+        return _interpret(db, _analyze.analyze_person, person_id, lang=lang)
 
     @app.get("/api/people/{person_id}/brief")
-    def person_brief(person_id: int) -> dict[str, Any]:
+    def person_brief(person_id: int, lang: str = "zh") -> dict[str, Any]:
         """见面前 brief：该人跨对话话语 → 下次见面前该记得什么（带原话出处）。"""
-        return _interpret(db, _analyze.meeting_brief, person_id)
+        return _interpret(db, _analyze.meeting_brief, person_id, lang=lang)
 
     # ---- 对话（事实） ---------------------------------------------------
 
@@ -484,9 +488,13 @@ def create_app(
         }
 
     @app.get("/api/conversations/{conversation_id}/summary")
-    def conversation_summary(conversation_id: int) -> dict[str, Any]:
+    def conversation_summary(
+        conversation_id: int, lang: str = "zh"
+    ) -> dict[str, Any]:
         """顶部摘要：该对话全部话语 → 聊了什么/关键结论/跟进（带原话出处）。"""
-        return _interpret(db, _analyze.summarize_conversation, conversation_id)
+        return _interpret(
+            db, _analyze.summarize_conversation, conversation_id, lang=lang
+        )
 
     @app.get("/api/conversations/{conversation_id}/audio")
     def conversation_audio(conversation_id: int, request: Request) -> Response:
@@ -537,12 +545,14 @@ def create_app(
         db.delete_annotation(annotation_id)
         return {"ok": True}
 
-    # ---- 解读：划选分析（M4 占位） --------------------------------------
+    # ---- 解读：划选分析 -------------------------------------------------
 
     @app.post("/api/analyze")
-    def analyze(body: AnalyzeBody) -> dict[str, Any]:
+    def analyze(body: AnalyzeBody, lang: str = "zh") -> dict[str, Any]:
         """划选几行 → 就事论事的解读（带原话出处）。"""
-        return _interpret(db, _analyze.analyze_selection, body.utterance_ids)
+        return _interpret(
+            db, _analyze.analyze_selection, body.utterance_ids, lang=lang
+        )
 
     # ---- 关系图（事实：人物 + 共现推断的连线） --------------------------
 
@@ -581,12 +591,12 @@ def create_app(
     # ---- 解读：复盘（M4 占位） ------------------------------------------
 
     @app.post("/api/review")
-    def review(body: ReviewBody) -> dict[str, Any]:
+    def review(body: ReviewBody, lang: str = "zh") -> dict[str, Any]:
         """复盘的『你的视角 / 对方视角 / 接下来怎么做』（带原话出处）。
 
         事实回放（第①步）由前端复用对话/话语真数据呈现，无需此端点。
         """
-        return _interpret(db, _analyze.review, body.scope, body.id)
+        return _interpret(db, _analyze.review, body.scope, body.id, lang=lang)
 
     # ---- 静态托管（SPA，history fallback） ------------------------------
 

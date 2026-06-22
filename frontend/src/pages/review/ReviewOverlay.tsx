@@ -18,25 +18,29 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import type { ReviewScope } from '../../api/types'
 import { Button } from '../../components/Button'
 import { FactReplay } from './FactReplay'
 import { InterpretStep } from './InterpretStep'
 import { ReviewStepper, REVIEW_STEPS } from './ReviewStepper'
 
-/** ②③④各步的标题与引导文案（与 REVIEW_STEPS 对应）。 */
-const INTERPRET_COPY: Record<number, { title: string; hint: string }> = {
+/**
+ * ②③④各步的标题与引导文案对应的 i18n key（与 REVIEW_STEPS 对应）。
+ * title 复用 stepper 步骤名；hint 走 interpret.*.hint。
+ */
+const INTERPRET_COPY: Record<number, { titleKey: string; hintKey: string }> = {
   2: {
-    title: '你的视角',
-    hint: '基于上面的原话，回看你当时在意什么、想表达什么。',
+    titleKey: 'stepper.steps.yourView',
+    hintKey: 'interpret.yourView.hint',
   },
   3: {
-    title: '对方可能的视角',
-    hint: '换位想一想：同样这些话，对方可能是怎么理解、怎么感受的。',
+    titleKey: 'stepper.steps.theirView',
+    hintKey: 'interpret.theirView.hint',
   },
   4: {
-    title: '接下来怎么做',
-    hint: '把回看变成下一步——一两个具体、可执行的小动作。',
+    titleKey: 'stepper.steps.nextStep',
+    hintKey: 'interpret.nextStep.hint',
   },
 }
 
@@ -52,6 +56,7 @@ export interface ReviewOverlayProps {
 }
 
 export function ReviewOverlay({ scope, id, title, onClose }: ReviewOverlayProps) {
+  const { t } = useTranslation('review')
   // 当前步（1..4）由覆盖层自管，父页面只控制开/关，改动更小更内聚
   const [step, setStep] = useState(1)
   const onStep = useCallback(
@@ -137,7 +142,7 @@ export function ReviewOverlay({ scope, id, title, onClose }: ReviewOverlayProps)
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 pt-4 pb-3 sm:px-6">
           <div className="min-w-0">
             <p className="font-ui text-xs font-medium uppercase tracking-wide text-pine">
-              复盘
+              {t('overlay.eyebrow')}
             </p>
             <h2
               id="review-overlay-title"
@@ -149,7 +154,7 @@ export function ReviewOverlay({ scope, id, title, onClose }: ReviewOverlayProps)
           <button
             type="button"
             onClick={onClose}
-            aria-label="关闭复盘"
+            aria-label={t('overlay.close')}
             className="-mr-1.5 -mt-1 inline-grid size-8 shrink-0 place-items-center rounded-sm text-ink-soft transition-colors hover:bg-ink/5 hover:text-ink"
           >
             <CloseGlyph />
@@ -167,8 +172,8 @@ export function ReviewOverlay({ scope, id, title, onClose }: ReviewOverlayProps)
             <InterpretStep
               scope={scope}
               id={id}
-              title={copy.title}
-              hint={copy.hint}
+              title={t(copy.titleKey)}
+              hint={t(copy.hintKey)}
             />
           ) : null}
         </div>
@@ -180,18 +185,21 @@ export function ReviewOverlay({ scope, id, title, onClose }: ReviewOverlayProps)
             onClick={() => onStep(step - 1)}
             disabled={isFirst}
           >
-            ← 上一步
+            {t('overlay.prev')}
           </Button>
           <span className="font-mono text-xs text-ink-soft">
-            {step} / {REVIEW_STEPS.length}
+            {t('overlay.progress', {
+              current: step,
+              total: REVIEW_STEPS.length,
+            })}
           </span>
           {isLast ? (
             <Button variant="primary" onClick={onClose}>
-              完成复盘
+              {t('overlay.finish')}
             </Button>
           ) : (
             <Button variant="primary" onClick={() => onStep(step + 1)}>
-              下一步 →
+              {t('overlay.next')}
             </Button>
           )}
         </footer>

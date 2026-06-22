@@ -7,8 +7,9 @@
  * 紧凑一条放页顶，未来日期渲染成幽灵格（不参与计数、低存在感）。
  */
 
+import { useTranslation } from 'react-i18next'
 import type { HeatCell } from './dateUtils'
-import { buildHeatmap } from './dateUtils'
+import { buildHeatmap, formatCalendarDate } from './dateUtils'
 import type { ConversationListItem } from '../../api/types'
 
 interface HeatmapProps {
@@ -32,10 +33,11 @@ function cellStyle(cell: HeatCell, maxCount: number): React.CSSProperties {
   return { backgroundColor: `color-mix(in srgb, var(--pine) ${pct}%, var(--card))` }
 }
 
-// 星期标签（只显式标 周一/周三/周五，避免拥挤）
-const WEEKDAY_MARKS: Record<number, string> = { 1: '一', 3: '三', 5: '五' }
+// 只显式标这几个星期（其余留空，避免拥挤）；文案走 i18n。
+const WEEKDAY_MARK_DAYS = [1, 3, 5]
 
 export function Heatmap({ conversations, weeks = 12 }: HeatmapProps) {
+  const { t, i18n } = useTranslation('today')
   const { columns, maxCount } = buildHeatmap(conversations, weeks)
   const hasAny = maxCount > 0
 
@@ -43,10 +45,10 @@ export function Heatmap({ conversations, weeks = 12 }: HeatmapProps) {
     <div className="rounded-card border border-line bg-card/60 px-4 py-3.5">
       <div className="mb-2.5 flex items-baseline justify-between gap-3">
         <span className="font-ui text-xs font-medium text-ink-soft">
-          最近 {weeks} 周
+          {t('heatmap.recentWeeks', { count: weeks })}
         </span>
         <span className="font-ui text-xs text-ink-soft">
-          {hasAny ? '颜色越深，那天对话越多' : '还没有记录，开始录音后这里会亮起来'}
+          {hasAny ? t('heatmap.legend') : t('heatmap.emptyLegend')}
         </span>
       </div>
 
@@ -62,7 +64,7 @@ export function Heatmap({ conversations, weeks = 12 }: HeatmapProps) {
               key={d}
               className="flex h-3 items-center font-mono text-[9px] leading-none text-ink-soft/70"
             >
-              {WEEKDAY_MARKS[d] ?? ''}
+              {WEEKDAY_MARK_DAYS.includes(d) ? t(`heatmap.weekdayMark.${d}` as const) : ''}
             </span>
           ))}
         </div>
@@ -77,7 +79,10 @@ export function Heatmap({ conversations, weeks = 12 }: HeatmapProps) {
                   title={
                     cell.future
                       ? undefined
-                      : `${cell.label} · ${cell.count} 段对话`
+                      : t('heatmap.cellTitle', {
+                          date: formatCalendarDate(cell.key, i18n.language),
+                          count: cell.count,
+                        })
                   }
                   style={cellStyle(cell, maxCount)}
                   className="h-3 w-3 rounded-[3px] ring-1 ring-inset ring-line/40"

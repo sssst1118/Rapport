@@ -1,0 +1,93 @@
+{
+  "brand": { "tagline": "Margin & Record" },
+  "nav": { "today": "Today", "people": "People", "graph": "Graph", "styleguide": "Style guide", "home": "Rapport home", "main": "Main navigation" },
+  "lang": { "label": "Language" },
+  "recording": {
+    "live": "Recording",
+    "paused": "Paused",
+    "idle": "Not recording",
+    "pause": "Pause",
+    "resume": "Resume",
+    "discard": "Don't keep this"
+  },
+  "state": {
+    "loading": "Loading…",
+    "error": "Couldn't load this. Please try again in a moment.",
+    "retry": "Try again"
+  },
+  "interpretation": {
+    "badge": "Reading",
+    "empty": "Nothing to read into yet.",
+    "needsSetup": "A little setup is needed before readings can be generated.",
+    "error": "Couldn't write a reading this time. Try again later."
+  },
+  "citation": {
+    "noSource": "(No spoken source to replay yet)",
+    "replaySpeaker": "Replay {{speaker}}'s line"
+  },
+  "audio": {
+    "play": "Play",
+    "pause": "Pause",
+    "playLine": "Play this line",
+    "loading": "Loading audio…",
+    "unavailable": "Audio unavailable"
+  },
+  "notFound": {
+    "title": "Nothing here",
+    "description": "The page you're looking for doesn't exist.",
+    "backToToday": "Back to Today"
+  },
+  "styleguide": {
+    "title": "Style guide",
+    "description": "A visual baseline for the Margin & Record design system — color, type, components.",
+    "section": {
+      "palette": "Palette",
+      "type": "Type · three voices",
+      "mark": "Waveform mark · WaveformMark",
+      "color": "People as color · Avatar / SpeakerStripe",
+      "player": "Audio players · WaveformPlayer / PlayLine",
+      "interpretation": "Reading card · InterpretationCard · margin note",
+      "button": "Button",
+      "states": "States · loading / empty / error"
+    },
+    "swatch": {
+      "ink": "Body (the record)",
+      "inkSoft": "Secondary text / labels",
+      "paper": "App ground, oat",
+      "card": "Raised surface, cards",
+      "line": "Hairline dividers",
+      "pine": "Brand / truth anchor",
+      "pineSoft": "Pine secondary / hover",
+      "iris": "Reading layer only",
+      "irisTint": "Reading card background",
+      "live": "Recording indicator only"
+    },
+    "type": {
+      "recordLabel": "Record · what people say (LXGW WenKai / Literata)",
+      "recordSample": "“We talked late into the night, and he said he'd always wanted to live a different way.”",
+      "recordSampleLatin": "The quiet things that no one ever knows.",
+      "uiLabel": "Interface · chrome (Noto Sans SC / Hanken Grotesk)",
+      "uiSample": "Today · People · Graph — quiet, modern, stepping back",
+      "monoLabel": "Record timestamp · data (IBM Plex Mono)",
+      "monoSample_one": "0:42 / 3:17 · A · B · {{count}} line",
+      "monoSample_other": "0:42 / 3:17 · A · B · {{count}} lines"
+    },
+    "transcriptSample": "{{name}}: a sample transcript line with a speaker color stripe.",
+    "playLineHint": "Inline PlayLine: tap to jump to a single line (stays quiet when the backend is offline).",
+    "interpretation": {
+      "conversationTitle": "A note on this conversation",
+      "personTitle": "About this person"
+    },
+    "sampleInterpretationMessage": "(Sample) A reading and recap of this conversation will appear here.",
+    "button": {
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "ghost": "Ghost",
+      "disabled": "Disabled"
+    },
+    "states": {
+      "emptyTitle": "Nothing here",
+      "emptyHint": "This is an empty-state sample."
+    }
+  }
+}

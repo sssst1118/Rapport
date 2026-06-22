@@ -9,6 +9,7 @@
  *   所以卡上只呈现 参与者 + note + 时间 + 句数 + 音频在场，不显示时长（拿不到，不编造）。
  */
 
+import { useTranslation } from 'react-i18next'
 import { getConversations } from '../api/client'
 import { useAsync } from '../lib/useAsync'
 import { PageHeader } from '../components/PageHeader'
@@ -17,9 +18,10 @@ import { LoadingBlock, EmptyState, ErrorState } from '../components/states'
 import { Heatmap } from './today/Heatmap'
 import { BeforeMeeting } from './today/BeforeMeeting'
 import { ConversationCard } from './today/ConversationCard'
-import { groupByDay } from './today/dateUtils'
+import { groupByDay, relativeDayLabel } from './today/dateUtils'
 
 export function TodayPage() {
+  const { t, i18n } = useTranslation('today')
   const { data, loading, error, reload } = useAsync((s) => getConversations(s), [])
 
   const groups = data ? groupByDay(data) : []
@@ -28,15 +30,15 @@ export function TodayPage() {
   return (
     <section>
       <PageHeader
-        title="今日"
-        description="今天你和谁说过话。每一段都是一份可回放、可批注的记录。"
+        title={t('header.title')}
+        description={t('header.description')}
         actions={<WaveformMark height={24} className="opacity-80" />}
       />
 
-      {loading && <LoadingBlock label="正在加载对话…" />}
+      {loading && <LoadingBlock label={t('loading')} />}
 
       {!loading && error && (
-        <ErrorState message="暂时取不到对话列表。" onRetry={reload} />
+        <ErrorState message={t('error')} onRetry={reload} />
       )}
 
       {!loading && !error && data && data.length === 0 && (
@@ -44,8 +46,8 @@ export function TodayPage() {
           {/* 空数据也保留热力图骨架，引导预期 */}
           <Heatmap conversations={[]} />
           <EmptyState
-            title="还没有任何对话"
-            hint="开始录音后，今天和你说过话的人会出现在这里。"
+            title={t('empty.title')}
+            hint={t('empty.hint')}
           />
         </div>
       )}
@@ -71,10 +73,10 @@ export function TodayPage() {
                         : 'text-base text-ink-soft',
                     ].join(' ')}
                   >
-                    {g.label}
+                    {relativeDayLabel(g.relative, t, i18n.language)}
                   </h2>
                   <span className="font-mono text-xs text-ink-soft">
-                    {g.items.length} 段
+                    {t('group.count', { count: g.items.length })}
                   </span>
                   {g.isToday && (
                     <span className="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-pine" aria-hidden="true" />

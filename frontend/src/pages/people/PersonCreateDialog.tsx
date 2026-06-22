@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createPerson } from '../../api/client'
 import { Button } from '../../components/Button'
 
@@ -24,6 +25,7 @@ export function PersonCreateDialog({
   onClose,
   onCreated,
 }: PersonCreateDialogProps) {
+  const { t } = useTranslation('people')
   const dialogRef = useRef<HTMLDialogElement | null>(null)
   const nameRef = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState('')
@@ -52,7 +54,7 @@ export function PersonCreateDialog({
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) {
-      setError('名字不能为空。')
+      setError(t('create.nameRequired'))
       nameRef.current?.focus()
       return
     }
@@ -66,7 +68,7 @@ export function PersonCreateDialog({
       onCreated(created.id)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败，请重试。')
+      setError(err instanceof Error ? err.message : t('create.failed'))
     } finally {
       setSubmitting(false)
     }
@@ -88,33 +90,36 @@ export function PersonCreateDialog({
     >
       <form onSubmit={handleSubmit} className="p-5">
         <h2 className="mb-1 font-record text-lg font-semibold text-ink">
-          新建人物
+          {t('create.title')}
         </h2>
         <p className="mb-4 font-ui text-sm text-ink-soft">
-          线下认识、还没在对话里出现过的人，可以先在这里建档。
+          {t('create.description')}
         </p>
 
         <label className="mb-3 block">
           <span className="mb-1 block font-ui text-xs font-medium text-ink-soft">
-            名字
+            {t('create.nameLabel')}
           </span>
           <input
             ref={nameRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="例如：老王"
+            placeholder={t('create.namePlaceholder')}
             className="w-full rounded-sm border border-line bg-paper px-3 py-2 font-record text-[15px] text-ink outline-none placeholder:text-ink-soft/50 focus:border-pine-soft"
           />
         </label>
 
         <label className="mb-4 block">
           <span className="mb-1 block font-ui text-xs font-medium text-ink-soft">
-            关系 <span className="text-ink-soft/60">（可选）</span>
+            {t('create.relationLabel')}{' '}
+            <span className="text-ink-soft/60">
+              {t('create.relationOptional')}
+            </span>
           </span>
           <input
             value={relation}
             onChange={(e) => setRelation(e.target.value)}
-            placeholder="例如：同事 / 朋友 / 客户"
+            placeholder={t('create.relationPlaceholder')}
             className="w-full rounded-sm border border-line bg-paper px-3 py-2 font-ui text-sm text-ink outline-none placeholder:text-ink-soft/50 focus:border-pine-soft"
           />
         </label>
@@ -127,10 +132,10 @@ export function PersonCreateDialog({
 
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={submitting}>
-            取消
+            {t('create.cancel')}
           </Button>
           <Button type="submit" variant="primary" disabled={submitting}>
-            {submitting ? '创建中…' : '创建'}
+            {submitting ? t('create.submitting') : t('create.submit')}
           </Button>
         </div>
       </form>

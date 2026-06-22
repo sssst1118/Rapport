@@ -1,0 +1,64 @@
+{
+  "page": {
+    "fallbackTitle": "一段对话",
+    "review": "复盘",
+    "loading": "正在加载对话…",
+    "openError": "打不开这段对话。",
+    "emptyTranscript": "这段对话还没有转写文字",
+    "summaryTitle": "这次对话的小结",
+    "segmentTitle_other": "就这段分析（{{count}} 句）",
+    "speakerMapTitle": "把说话人「{{label}}」整段归属到…"
+  },
+  "selection": {
+    "selected_other": "已选 {{count}} 句",
+    "analyzeSegment": "就这段分析",
+    "analyzing": "分析中…",
+    "clear": "取消选择"
+  },
+  "summary": {
+    "noParticipants": "尚无归属的参与者",
+    "viewPerson": "查看 {{name}}",
+    "occurredAt": "发生于",
+    "sentences": "句数",
+    "duration": "时长"
+  },
+  "row": {
+    "selectThisLine": "选中这一行",
+    "selectNth": "选中第 {{index}} 句",
+    "mapSpeakerWhole": "把这个说话人整段归属到某人",
+    "whoIsThisHint": "这是谁？点一下认人，整段一起归属",
+    "changeMapping": "改这个说话人的归属",
+    "whoIsThisSuffix": "这是谁？",
+    "collapse": "收起",
+    "moreActions": "更多操作",
+    "saving": "保存中…",
+    "save": "保存",
+    "cancel": "取消",
+    "editHint": "⌘/Ctrl+Enter 保存 · Esc 取消",
+    "clickToEdit": "点一下编辑这句话",
+    "deleteAnnotation": "删除标注 {{value}}",
+    "editText": "编辑文字",
+    "changeSpeaker": "改这一行说话人",
+    "rowPickerTitle": "这一行是谁说的？",
+    "addTagPlaceholder": "加标签",
+    "addNotePlaceholder": "加批注",
+    "add": "加",
+    "saveFailed": "保存失败，请重试",
+    "addTagFailed": "添加标签失败",
+    "addNoteFailed": "添加批注失败",
+    "deleteAnnotationFailed": "删除标注失败"
+  },
+  "picker": {
+    "defaultTitle": "归属到谁？",
+    "searchPlaceholder": "搜索或输入新名字…",
+    "loadingPeople": "正在加载人物…",
+    "peopleError": "取不到人物列表。",
+    "setUnknown": "设为未知（清除归属）",
+    "personSentences_other": "{{count}} 句",
+    "current": "当前",
+    "noMatch": "没有匹配的人。",
+    "createNew": "新建「{{name}}」",
+    "createFailed": "新建失败，请重试",
+    "saving": "正在保存…"
+  }
+}

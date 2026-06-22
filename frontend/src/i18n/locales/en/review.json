@@ -1,0 +1,50 @@
+{
+  "overlay": {
+    "eyebrow": "Review",
+    "close": "Close review",
+    "prev": "← Back",
+    "next": "Next →",
+    "finish": "Done",
+    "progress": "{{current}} / {{total}}"
+  },
+  "stepper": {
+    "navLabel": "Review steps",
+    "steps": {
+      "fact": "Replay the facts",
+      "yourView": "Your side",
+      "theirView": "How they might have heard it",
+      "nextStep": "Where to go from here"
+    }
+  },
+  "interpret": {
+    "badge": "Reading",
+    "note": "·grounded in their own words, replayable, never made up",
+    "yourView": {
+      "hint": "Looking back at the words above, what mattered to you then, and what were you trying to say?"
+    },
+    "theirView": {
+      "hint": "Step into their shoes: hearing those same words, how might they have understood and felt it?"
+    },
+    "nextStep": {
+      "hint": "Turn looking back into a step forward — one or two small, doable things."
+    }
+  },
+  "fact": {
+    "badge": "Replay the facts",
+    "note": "·just the words as they were said, with the original audio",
+    "conversation": {
+      "loading": "Loading what was said in this conversation…",
+      "error": "Couldn't open this conversation.",
+      "hint": "Start by returning to the words as they were — listen line by line, settle on the facts, then talk about how you see it.",
+      "emptyTranscript": "This conversation hasn't been transcribed yet"
+    },
+    "person": {
+      "loading": "Loading what they've said recently…",
+      "error": "Couldn't load what this person said.",
+      "hint": "Start by revisiting what they've said lately — listen line by line, settle on the facts, then talk about how you see it.",
+      "emptyTitle": "Nothing has been attributed to this person yet",
+      "emptyHint": "Once you attribute a speaker to them in a conversation, their words will show up here.",
+      "untitledConversation": "A conversation"
+    }
+  }
+}

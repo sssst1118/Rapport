@@ -6,6 +6,7 @@
  * 注意：WaveformPlayer 指向一个示例音频地址；后端没起时它会优雅显示「音频暂不可用」。
  */
 
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '../components/PageHeader'
 import { WaveformMark } from '../components/WaveformMark'
 import { WaveformPlayer } from '../components/WaveformPlayer'
@@ -18,17 +19,17 @@ import { EmptyState, ErrorState, LoadingBlock } from '../components/states'
 import { audioUrl } from '../api/client'
 import type { Interpretation } from '../api/types'
 
-const SWATCHES: { name: string; varName: string; note: string }[] = [
-  { name: 'ink', varName: '--ink', note: '正文（事实）' },
-  { name: 'ink-soft', varName: '--ink-soft', note: '次级文字 / 标签' },
-  { name: 'paper', varName: '--paper', note: '应用底色 燕麦' },
-  { name: 'card', varName: '--card', note: '抬升表面 卡片' },
-  { name: 'line', varName: '--line', note: '细分隔线' },
-  { name: 'pine', varName: '--pine', note: '品牌 / 真相锚' },
-  { name: 'pine-soft', varName: '--pine-soft', note: 'pine 次级 / hover' },
-  { name: 'iris', varName: '--iris', note: '解读层 专用' },
-  { name: 'iris-tint', varName: '--iris-tint', note: '解读卡背景' },
-  { name: 'live', varName: '--live', note: '仅录制指示点' },
+const SWATCHES: { name: string; varName: string; noteKey: string }[] = [
+  { name: 'ink', varName: '--ink', noteKey: 'styleguide.swatch.ink' },
+  { name: 'ink-soft', varName: '--ink-soft', noteKey: 'styleguide.swatch.inkSoft' },
+  { name: 'paper', varName: '--paper', noteKey: 'styleguide.swatch.paper' },
+  { name: 'card', varName: '--card', noteKey: 'styleguide.swatch.card' },
+  { name: 'line', varName: '--line', noteKey: 'styleguide.swatch.line' },
+  { name: 'pine', varName: '--pine', noteKey: 'styleguide.swatch.pine' },
+  { name: 'pine-soft', varName: '--pine-soft', noteKey: 'styleguide.swatch.pineSoft' },
+  { name: 'iris', varName: '--iris', noteKey: 'styleguide.swatch.iris' },
+  { name: 'iris-tint', varName: '--iris-tint', noteKey: 'styleguide.swatch.irisTint' },
+  { name: 'live', varName: '--live', noteKey: 'styleguide.swatch.live' },
 ]
 
 const SAMPLE_PEOPLE = [
@@ -39,13 +40,6 @@ const SAMPLE_PEOPLE = [
   { id: 5, name: 'Jonas' },
   { id: 7, name: '周一一' },
 ]
-
-const PENDING: Interpretation = {
-  kind: 'interpretation',
-  status: 'pending',
-  message: '（示例）这里将显示对这段对话的解读与小结。',
-  data: null,
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -59,15 +53,24 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function StyleguidePage() {
+  const { t } = useTranslation('common')
+
+  const pending: Interpretation = {
+    kind: 'interpretation',
+    status: 'pending',
+    message: t('styleguide.sampleInterpretationMessage'),
+    data: null,
+  }
+
   return (
     <div>
       <PageHeader
-        title="样式手册"
-        description="《记录与旁批》设计系统的可视基准 —— 色、字、件。"
+        title={t('styleguide.title')}
+        description={t('styleguide.description')}
       />
 
       {/* 调色板 */}
-      <Section title="调色板">
+      <Section title={t('styleguide.section.palette')}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {SWATCHES.map((s) => (
             <div key={s.name} className="rounded-card border border-line bg-card p-2">
@@ -76,47 +79,47 @@ export function StyleguidePage() {
                 style={{ backgroundColor: `var(${s.varName})` }}
               />
               <p className="font-mono text-xs text-ink">{s.name}</p>
-              <p className="font-ui text-[11px] text-ink-soft">{s.note}</p>
+              <p className="font-ui text-[11px] text-ink-soft">{t(s.noteKey)}</p>
             </div>
           ))}
         </div>
       </Section>
 
       {/* 字体三角色 */}
-      <Section title="字体 · 三角色">
+      <Section title={t('styleguide.section.type')}>
         <div className="space-y-4">
           <div className="rounded-card border border-line bg-card p-4">
             <p className="mb-1 font-ui text-xs text-ink-soft">
-              记录体 · 人说的话（霞鹜文楷 / Literata）
+              {t('styleguide.type.recordLabel')}
             </p>
             <p className="font-record text-xl text-ink">
-              “我们那天聊到很晚，他说他其实一直想换一种活法。”
+              {t('styleguide.type.recordSample')}
             </p>
             <p className="font-record text-base text-ink-soft">
-              The quiet things that no one ever knows.
+              {t('styleguide.type.recordSampleLatin')}
             </p>
           </div>
           <div className="rounded-card border border-line bg-card p-4">
             <p className="mb-1 font-ui text-xs text-ink-soft">
-              界面体 · chrome（Noto Sans SC / Hanken Grotesk）
+              {t('styleguide.type.uiLabel')}
             </p>
             <p className="font-ui text-lg text-ink">
-              今日 · 人物 · 关系图 — 安静、现代、退到后面
+              {t('styleguide.type.uiSample')}
             </p>
           </div>
           <div className="rounded-card border border-line bg-card p-4">
             <p className="mb-1 font-ui text-xs text-ink-soft">
-              记录时刻体 · 数据（IBM Plex Mono）
+              {t('styleguide.type.monoLabel')}
             </p>
             <p className="font-mono text-lg tabular-nums text-ink">
-              0:42 / 3:17 · A · B · 128 句
+              {t('styleguide.type.monoSample', { count: 128 })}
             </p>
           </div>
         </div>
       </Section>
 
       {/* 品牌印记 */}
-      <Section title="波形品牌印记 WaveformMark">
+      <Section title={t('styleguide.section.mark')}>
         <div className="flex items-center gap-6 rounded-card border border-line bg-card p-4">
           <div className="flex items-center gap-2.5">
             <WaveformMark height={20} />
@@ -128,7 +131,7 @@ export function StyleguidePage() {
       </Section>
 
       {/* 人即颜色 */}
-      <Section title="人即颜色 · Avatar / SpeakerStripe">
+      <Section title={t('styleguide.section.color')}>
         <div className="rounded-card border border-line bg-card p-4">
           <div className="mb-4 flex flex-wrap gap-3">
             {SAMPLE_PEOPLE.map((p) => (
@@ -143,7 +146,7 @@ export function StyleguidePage() {
               <div key={p.id} className="flex gap-3 py-1">
                 <SpeakerStripe colorKey={p.id} />
                 <p className="font-record text-[15px] text-ink">
-                  {p.name}：这是带行首色条的一行转写示例。
+                  {t('styleguide.transcriptSample', { name: p.name })}
                 </p>
               </div>
             ))}
@@ -152,43 +155,52 @@ export function StyleguidePage() {
       </Section>
 
       {/* 波形播放器 */}
-      <Section title="波形播放器 WaveformPlayer / PlayLine">
+      <Section title={t('styleguide.section.player')}>
         <div className="space-y-3 rounded-card border border-line bg-card p-4">
           <WaveformPlayer src={audioUrl('demo')} />
           <div className="flex items-center gap-2 border-t border-line pt-3">
             <PlayLine src={audioUrl('demo')} startMs={1000} endMs={4000} />
             <span className="font-ui text-sm text-ink-soft">
-              行内 PlayLine：点一下跳播某句区间（后端未起时静默不报错）
+              {t('styleguide.playLineHint')}
             </span>
           </div>
         </div>
       </Section>
 
       {/* 解读卡 */}
-      <Section title="解读卡 InterpretationCard · 页边旁批">
+      <Section title={t('styleguide.section.interpretation')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <InterpretationCard title="这次对话的小结" interpretation={PENDING} />
-          <InterpretationCard title="关于这个人" loading />
+          <InterpretationCard
+            title={t('styleguide.interpretation.conversationTitle')}
+            interpretation={pending}
+          />
+          <InterpretationCard
+            title={t('styleguide.interpretation.personTitle')}
+            loading
+          />
         </div>
       </Section>
 
       {/* 按钮 */}
-      <Section title="按钮 Button">
+      <Section title={t('styleguide.section.button')}>
         <div className="flex flex-wrap items-center gap-3 rounded-card border border-line bg-card p-4">
-          <Button variant="primary">主操作</Button>
-          <Button variant="secondary">次操作</Button>
-          <Button variant="ghost">低强度</Button>
+          <Button variant="primary">{t('styleguide.button.primary')}</Button>
+          <Button variant="secondary">{t('styleguide.button.secondary')}</Button>
+          <Button variant="ghost">{t('styleguide.button.ghost')}</Button>
           <Button variant="primary" disabled>
-            禁用
+            {t('styleguide.button.disabled')}
           </Button>
         </div>
       </Section>
 
       {/* 状态件 */}
-      <Section title="状态件 · loading / 空 / 错误">
+      <Section title={t('styleguide.section.states')}>
         <div className="grid gap-3 lg:grid-cols-3">
           <LoadingBlock />
-          <EmptyState title="什么也没有" hint="这是空态示例。" />
+          <EmptyState
+            title={t('styleguide.states.emptyTitle')}
+            hint={t('styleguide.states.emptyHint')}
+          />
           <ErrorState onRetry={() => {}} />
         </div>
       </Section>

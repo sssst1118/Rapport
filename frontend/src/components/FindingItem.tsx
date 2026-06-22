@@ -8,6 +8,7 @@
  * 这样用户一眼就能核对：这条判断的依据，正是下面这几句录下来的真话。
  */
 
+import { useTranslation } from 'react-i18next'
 import type { Finding } from '../api/types'
 import { CitationChip } from './CitationChip'
 
@@ -16,6 +17,7 @@ export interface FindingItemProps {
 }
 
 export function FindingItem({ finding }: FindingItemProps) {
+  const { t } = useTranslation('common')
   const { point, quotes } = finding
   const hasQuotes = quotes.length > 0
 
@@ -32,7 +34,7 @@ export function FindingItem({ finding }: FindingItemProps) {
         </ul>
       ) : (
         // 诚实：这条判断暂时没挂上原话出处，提示而非假装有据
-        <p className="font-ui text-xs text-ink-soft/80">（暂无可回放的原话出处）</p>
+        <p className="font-ui text-xs text-ink-soft/80">{t('citation.noSource')}</p>
       )}
     </li>
   )

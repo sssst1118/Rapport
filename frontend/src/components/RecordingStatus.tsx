@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getStatus } from '../api/client'
 import type { Status } from '../api/types'
 import { Button } from './Button'
@@ -18,6 +19,7 @@ import { Button } from './Button'
 const POLL_MS = 4000
 
 export function RecordingStatus() {
+  const { t } = useTranslation('common')
   const [status, setStatus] = useState<Status | null>(null)
   const timer = useRef<number | null>(null)
 
@@ -48,7 +50,11 @@ export function RecordingStatus() {
   const paused = status?.paused ?? false
 
   // 文案
-  const label = recording ? (paused ? '已暂停' : '正在录音') : '未在录音'
+  const label = recording
+    ? paused
+      ? t('recording.paused')
+      : t('recording.live')
+    : t('recording.idle')
 
   return (
     <div className="flex items-center gap-3">
@@ -82,7 +88,7 @@ export function RecordingStatus() {
             // TODO(后续 agent)：接 暂停/继续 录制
             onClick={() => {}}
           >
-            {paused ? '继续' : '暂停'}
+            {paused ? t('recording.resume') : t('recording.pause')}
           </Button>
           <Button
             variant="ghost"
@@ -90,7 +96,7 @@ export function RecordingStatus() {
             // TODO(后续 agent)：接 丢弃当前片段
             onClick={() => {}}
           >
-            这段别留
+            {t('recording.discard')}
           </Button>
         </div>
       )}

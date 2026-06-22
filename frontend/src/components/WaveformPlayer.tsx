@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import WaveSurfer from 'wavesurfer.js'
 import { formatTimecode } from '../lib/format'
 
@@ -39,6 +40,7 @@ export function WaveformPlayer({
   height = 64,
   className = '',
 }: WaveformPlayerProps) {
+  const { t } = useTranslation('common')
   const containerRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WaveSurfer | null>(null)
   const [ready, setReady] = useState(false)
@@ -129,7 +131,7 @@ export function WaveformPlayer({
         type="button"
         onClick={toggle}
         disabled={!ready || error}
-        aria-label={playing ? '暂停' : '播放'}
+        aria-label={playing ? t('audio.pause') : t('audio.play')}
         className="grid size-10 shrink-0 place-items-center rounded-full bg-pine text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {playing ? <PauseGlyph /> : <PlayGlyph />}
@@ -138,10 +140,10 @@ export function WaveformPlayer({
       <div className="min-w-0 flex-1">
         <div ref={containerRef} className="w-full" style={{ minHeight: height }} />
         {!ready && !error && (
-          <p className="mt-1 font-ui text-xs text-ink-soft">正在加载音频…</p>
+          <p className="mt-1 font-ui text-xs text-ink-soft">{t('audio.loading')}</p>
         )}
         {error && (
-          <p className="mt-1 font-ui text-xs text-ink-soft">音频暂不可用</p>
+          <p className="mt-1 font-ui text-xs text-ink-soft">{t('audio.unavailable')}</p>
         )}
       </div>
 

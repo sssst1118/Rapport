@@ -16,6 +16,8 @@
  * 原话出处是事实锚：每条判断都让用户一眼看出「这条读，依据的是这几句真话」。
  */
 
+import type { TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
 import type { Interpretation } from '../api/types'
 import { FindingItem } from './FindingItem'
 
@@ -35,6 +37,7 @@ export function InterpretationCard({
   loading = false,
   className = '',
 }: InterpretationCardProps) {
+  const { t } = useTranslation('common')
   // pending 与外部 loading 同等对待：都进加载骨架。
   const isLoading = loading || interpretation?.status === 'pending'
   const status = interpretation?.status
@@ -47,14 +50,14 @@ export function InterpretationCard({
     >
       {/* 右上角「解读」角标：明示这是 AI 的「读」、非事实 */}
       <span className="absolute right-3 top-3 rounded-sm bg-iris/12 px-1.5 py-0.5 font-ui text-[10px] font-medium tracking-wide text-iris">
-        解读
+        {t('interpretation.badge')}
       </span>
 
       <h3 className="mb-1.5 pr-12 font-ui text-sm font-semibold text-iris">
         {title}
       </h3>
 
-      {renderBody({ isLoading, status, interpretation })}
+      {renderBody({ isLoading, status, interpretation, t })}
     </aside>
   )
 }
@@ -64,10 +67,12 @@ function renderBody({
   isLoading,
   status,
   interpretation,
+  t,
 }: {
   isLoading: boolean
   status: Interpretation['status'] | undefined
   interpretation: Interpretation | null | undefined
+  t: TFunction<'common'>
 }) {
   // 1) 加载态（props.loading 或 status==='pending'）：沿用原骨架
   if (isLoading) {
@@ -76,14 +81,14 @@ function renderBody({
 
   // 2) 无信封：尚未发起 —— 给一句安静的占位
   if (!interpretation) {
-    return <QuietLine>暂无可呈现的解读。</QuietLine>
+    return <QuietLine>{t('interpretation.empty')}</QuietLine>
   }
 
   // 3) needs_setup：诚实告知如何配置，不用报错样式
   if (status === 'needs_setup') {
     return (
       <QuietLine>
-        {interpretation.message || '需要先配置才能生成解读。'}
+        {interpretation.message || t('interpretation.needsSetup')}
       </QuietLine>
     )
   }
@@ -92,7 +97,7 @@ function renderBody({
   if (status === 'error') {
     return (
       <QuietLine>
-        {interpretation.message || '这次没能生成解读，待会儿再试。'}
+        {interpretation.message || t('interpretation.error')}
       </QuietLine>
     )
   }
@@ -103,7 +108,7 @@ function renderBody({
     const overview = interpretation.data?.overview
 
     if (!overview && findings.length === 0) {
-      return <QuietLine>暂无可呈现的解读。</QuietLine>
+      return <QuietLine>{t('interpretation.empty')}</QuietLine>
     }
 
     return (
@@ -127,7 +132,7 @@ function renderBody({
 
   // 兜底：未知 status —— 用 message，再不济给占位
   return (
-    <QuietLine>{interpretation.message || '暂无可呈现的解读。'}</QuietLine>
+    <QuietLine>{interpretation.message || t('interpretation.empty')}</QuietLine>
   )
 }
 

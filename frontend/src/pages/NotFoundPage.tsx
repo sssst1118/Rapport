@@ -3,14 +3,16 @@
  */
 
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '../components/PageHeader'
 
 export function NotFoundPage() {
+  const { t } = useTranslation('common')
   return (
     <section>
-      <PageHeader title="这里什么也没有" description="你要找的页面不存在。" />
+      <PageHeader title={t('notFound.title')} description={t('notFound.description')} />
       <Link to="/" className="font-ui text-sm font-medium text-pine hover:underline">
-        回到今日
+        {t('notFound.backToToday')}
       </Link>
     </section>
   )

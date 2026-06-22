@@ -1,0 +1,60 @@
+{
+  "header": {
+    "title": "今日",
+    "description": "今天你和谁说过话。每一段都是一份可回放、可批注的记录。"
+  },
+  "loading": "正在加载对话…",
+  "error": "暂时取不到对话列表。",
+  "empty": {
+    "title": "还没有任何对话",
+    "hint": "开始录音后，今天和你说过话的人会出现在这里。"
+  },
+  "group": {
+    "count_one": "{{count}} 段",
+    "count_other": "{{count}} 段"
+  },
+  "relativeDay": {
+    "unknown": "未知日期",
+    "today": "今天",
+    "yesterday": "昨天",
+    "beforeYesterday": "前天",
+    "weekday": {
+      "0": "周日",
+      "1": "周一",
+      "2": "周二",
+      "3": "周三",
+      "4": "周四",
+      "5": "周五",
+      "6": "周六"
+    }
+  },
+  "heatmap": {
+    "recentWeeks": "最近 {{count}} 周",
+    "legend": "颜色越深，那天对话越多",
+    "emptyLegend": "还没有记录，开始录音后这里会亮起来",
+    "weekdayMark": {
+      "1": "一",
+      "3": "三",
+      "5": "五"
+    },
+    "cellTitle_one": "{{date}} · {{count}} 段对话",
+    "cellTitle_other": "{{date}} · {{count}} 段对话"
+  },
+  "beforeMeeting": {
+    "title": "见面前，先回看一眼",
+    "hint": "翻到对方的页面，看看你们上次聊了什么。",
+    "cta": "去人物 →"
+  },
+  "card": {
+    "pending": "说话人待确认",
+    "pendingHint": "点开把说话人映射到人，对话就归位了。",
+    "pendingNote": "点此认人并查看这段对话",
+    "noNote": "（无备注）",
+    "namesOverflow": "等 {{count}} 人",
+    "moreParticipants": "+{{count}}",
+    "viewPerson": "查看 {{name}}",
+    "utteranceCount_one": "{{count}} 句",
+    "utteranceCount_other": "{{count}} 句",
+    "hasAudio": "有音频"
+  }
+}

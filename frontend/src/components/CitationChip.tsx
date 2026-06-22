@@ -9,6 +9,7 @@
  * 让用户一眼分清——上面的判断是 AI 的「读」，这里引的是录下来的真话。
  */
 
+import { useTranslation } from 'react-i18next'
 import type { Citation } from '../api/types'
 import { audioUrl } from '../api/client'
 import { PlayLine } from './PlayLine'
@@ -26,6 +27,7 @@ function formatTimecode(ms: number): string {
 }
 
 export function CitationChip({ citation }: CitationChipProps) {
+  const { t } = useTranslation('common')
   const speaker = citation.person_name ?? citation.speaker_label
   const timecode = formatTimecode(citation.start_ms)
 
@@ -36,7 +38,7 @@ export function CitationChip({ citation }: CitationChipProps) {
         src={audioUrl(citation.conversation_id)}
         startMs={citation.start_ms}
         endMs={citation.end_ms}
-        label={`回放 ${speaker} 这一句`}
+        label={t('citation.replaySpeaker', { speaker })}
         className="mt-0.5 shrink-0"
       />
 

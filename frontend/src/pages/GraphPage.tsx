@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { getGraph } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
@@ -27,6 +28,7 @@ import { useForceLayout } from './graph/useForceLayout'
 const CANVAS_HEIGHT = 520
 
 export function GraphPage() {
+  const { t } = useTranslation('graph')
   const navigate = useNavigate()
   const { data, loading, error, reload } = useAsync((s) => getGraph(s), [])
 
@@ -88,19 +90,19 @@ export function GraphPage() {
   // —— 三态优雅降级 ——
   let body: React.ReactNode
   if (loading) {
-    body = <LoadingBlock label="正在加载关系网络…" />
+    body = <LoadingBlock label={t('states.loading')} />
   } else if (error) {
     body = (
       <ErrorState
-        message="关系图加载失败，请稍后再试。"
+        message={t('states.error')}
         onRetry={reload}
       />
     )
   } else if (!data || data.nodes.length === 0) {
     body = (
       <EmptyState
-        title="还没有可画的关系"
-        hint="多录几段有他人在场的对话，这里就会长出一张网。"
+        title={t('states.empty.title')}
+        hint={t('states.empty.hint')}
       />
     )
   } else {
@@ -131,7 +133,7 @@ export function GraphPage() {
             onClick={() => setFocusId(null)}
             className="absolute left-3 top-3 rounded-sm border border-line bg-paper/90 px-3 py-1.5 font-ui text-sm text-ink-soft backdrop-blur hover:text-pine"
           >
-            ← 返回全网
+            {t('focus.back')}
           </button>
         )}
 
@@ -149,7 +151,7 @@ export function GraphPage() {
                   className="inline-block h-2.5 w-2.5 rounded-full border-2"
                   style={{ borderColor: s.stroke, background: 'transparent' }}
                 />
-                {s.label}
+                {t(s.labelKey)}
               </span>
             )
           })}
@@ -161,8 +163,8 @@ export function GraphPage() {
   return (
     <section>
       <PageHeader
-        title="关系图"
-        description="谁和谁在同一段对话里出现过，就连一条线 —— 这是你身边人际结构的事实快照。点一个人只看他的圈子，点空白返回全网。"
+        title={t('header.title')}
+        description={t('header.description')}
       />
       {body}
     </section>

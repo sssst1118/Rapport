@@ -1,0 +1,50 @@
+{
+  "overlay": {
+    "eyebrow": "复盘",
+    "close": "关闭复盘",
+    "prev": "← 上一步",
+    "next": "下一步 →",
+    "finish": "完成复盘",
+    "progress": "{{current}} / {{total}}"
+  },
+  "stepper": {
+    "navLabel": "复盘步骤",
+    "steps": {
+      "fact": "事实回放",
+      "yourView": "你的视角",
+      "theirView": "对方可能的视角",
+      "nextStep": "接下来怎么做"
+    }
+  },
+  "interpret": {
+    "badge": "解读",
+    "note": "·会带原话出处、可回放，不凭空生成",
+    "yourView": {
+      "hint": "基于上面的原话，回看你当时在意什么、想表达什么。"
+    },
+    "theirView": {
+      "hint": "换位想一想：同样这些话，对方可能是怎么理解、怎么感受的。"
+    },
+    "nextStep": {
+      "hint": "把回看变成下一步——一两个具体、可执行的小动作。"
+    }
+  },
+  "fact": {
+    "badge": "事实回放",
+    "note": "·只呈现说过的原话，可回放原声",
+    "conversation": {
+      "loading": "正在加载这段对话的原话…",
+      "error": "打不开这段对话。",
+      "hint": "先回到当时的原话——逐句重听，确认事实，再谈你的看法。",
+      "emptyTranscript": "这段对话还没有转写文字"
+    },
+    "person": {
+      "loading": "正在加载这个人最近说过的话…",
+      "error": "取不到这个人的发言。",
+      "hint": "先回看 TA 最近说过的话——逐句重听，确认事实，再谈你的看法。",
+      "emptyTitle": "还没有归属到此人的发言",
+      "emptyHint": "在对话里把某个说话人归属到 TA 之后，这里会出现 TA 说过的话。",
+      "untitledConversation": "一段对话"
+    }
+  }
+}

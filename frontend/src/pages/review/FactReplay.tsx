@@ -10,6 +10,7 @@
  * 视觉=信笺（paper/card + 记录体 font-record），与解读层（iris 旁批）一眼区分。
  */
 
+import { useTranslation } from 'react-i18next'
 import type { ReviewScope } from '../../api/types'
 import { audioUrl, getConversation, getPersonUtterances } from '../../api/client'
 import { useAsync } from '../../lib/useAsync'
@@ -39,6 +40,7 @@ function FactShell({
   hint: string
   children: React.ReactNode
 }) {
+  const { t } = useTranslation('review')
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 font-ui text-sm text-pine">
@@ -46,8 +48,8 @@ function FactShell({
           aria-hidden="true"
           className="inline-block size-1.5 rounded-full bg-pine"
         />
-        <span className="font-medium">事实回放</span>
-        <span className="text-ink-soft">·只呈现说过的原话，可回放原声</span>
+        <span className="font-medium">{t('fact.badge')}</span>
+        <span className="text-ink-soft">{t('fact.note')}</span>
       </div>
       <p className="font-ui text-sm text-ink-soft">{hint}</p>
       {children}
@@ -57,21 +59,24 @@ function FactShell({
 
 /* —— scope='conversation'：整段转写逐句回放 —— */
 function ConversationFacts({ id }: { id: number }) {
+  const { t } = useTranslation('review')
   const { data, loading, error, reload } = useAsync(
     (s) => getConversation(id, s),
     [id],
   )
 
-  if (loading) return <LoadingBlock label="正在加载这段对话的原话…" />
+  if (loading) return <LoadingBlock label={t('fact.conversation.loading')} />
   if (error || !data)
-    return <ErrorState message="打不开这段对话。" onRetry={reload} />
+    return (
+      <ErrorState message={t('fact.conversation.error')} onRetry={reload} />
+    )
 
   const src = audioUrl(data.id)
 
   return (
-    <FactShell hint="先回到当时的原话——逐句重听，确认事实，再谈你的看法。">
+    <FactShell hint={t('fact.conversation.hint')}>
       {data.utterances.length === 0 ? (
-        <EmptyState title="这段对话还没有转写文字" />
+        <EmptyState title={t('fact.conversation.emptyTranscript')} />
       ) : (
         <ol className="space-y-1 rounded-card border border-line bg-card/60 p-2">
           {data.utterances.map((u) => (
@@ -105,14 +110,15 @@ function ConversationFacts({ id }: { id: number }) {
 
 /* —— scope='person'：该人最近若干句，跨对话回放 —— */
 function PersonFacts({ id }: { id: number }) {
+  const { t } = useTranslation('review')
   const { data, loading, error, reload } = useAsync(
     (s) => getPersonUtterances(id, s),
     [id],
   )
 
-  if (loading) return <LoadingBlock label="正在加载这个人最近说过的话…" />
+  if (loading) return <LoadingBlock label={t('fact.person.loading')} />
   if (error || !data)
-    return <ErrorState message="取不到这个人的发言。" onRetry={reload} />
+    return <ErrorState message={t('fact.person.error')} onRetry={reload} />
 
   // 最近 N 句：按时间倒序取前 PERSON_MAX 条
   const recent = [...data]
@@ -124,11 +130,11 @@ function PersonFacts({ id }: { id: number }) {
     .slice(0, PERSON_MAX)
 
   return (
-    <FactShell hint="先回看 TA 最近说过的话——逐句重听，确认事实，再谈你的看法。">
+    <FactShell hint={t('fact.person.hint')}>
       {recent.length === 0 ? (
         <EmptyState
-          title="还没有归属到此人的发言"
-          hint="在对话里把某个说话人归属到 TA 之后，这里会出现 TA 说过的话。"
+          title={t('fact.person.emptyTitle')}
+          hint={t('fact.person.emptyHint')}
         />
       ) : (
         <ol className="space-y-1 rounded-card border border-line bg-card/60 p-2">
@@ -141,7 +147,8 @@ function PersonFacts({ id }: { id: number }) {
               <div className="min-w-0 flex-1">
                 <div className="mb-0.5 flex items-center gap-2">
                   <span className="truncate font-mono text-[11px] text-ink-soft/80">
-                    {u.conversation_note?.trim() || '一段对话'}
+                    {u.conversation_note?.trim() ||
+                      t('fact.person.untitledConversation')}
                   </span>
                   <span className="font-mono text-[11px] text-ink-soft/60">
                     {formatTimecode(u.start_ms)}

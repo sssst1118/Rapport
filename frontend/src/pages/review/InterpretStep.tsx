@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Interpretation, ReviewScope } from '../../api/types'
 import { review } from '../../api/client'
 import { InterpretationCard } from '../../components/InterpretationCard'
@@ -23,6 +24,7 @@ export interface InterpretStepProps {
 }
 
 export function InterpretStep({ scope, id, title, hint }: InterpretStepProps) {
+  const { t } = useTranslation('review')
   const [data, setData] = useState<Interpretation | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -55,8 +57,8 @@ export function InterpretStep({ scope, id, title, hint }: InterpretStepProps) {
           aria-hidden="true"
           className="inline-block size-1.5 rounded-full bg-iris"
         />
-        <span className="font-medium">解读</span>
-        <span className="text-ink-soft">·会带原话出处、可回放，不凭空生成</span>
+        <span className="font-medium">{t('interpret.badge')}</span>
+        <span className="text-ink-soft">{t('interpret.note')}</span>
       </div>
       <p className="font-ui text-sm text-ink-soft">{hint}</p>
       <InterpretationCard title={title} interpretation={data} loading={loading} />

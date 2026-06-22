@@ -1,0 +1,67 @@
+{
+  "page": {
+    "fallbackTitle": "A conversation",
+    "review": "Look back",
+    "loading": "Opening the conversation…",
+    "openError": "Couldn't open this conversation.",
+    "emptyTranscript": "No transcript for this conversation yet",
+    "summaryTitle": "A note on this conversation",
+    "segmentTitle_one": "On this part ({{count}} line)",
+    "segmentTitle_other": "On this part ({{count}} lines)",
+    "speakerMapTitle": "Attribute every line from “{{label}}” to…"
+  },
+  "selection": {
+    "selected_one": "{{count}} line selected",
+    "selected_other": "{{count}} lines selected",
+    "analyzeSegment": "Analyze this part",
+    "analyzing": "Analyzing…",
+    "clear": "Clear selection"
+  },
+  "summary": {
+    "noParticipants": "No one attributed yet",
+    "viewPerson": "View {{name}}",
+    "occurredAt": "When",
+    "sentences": "Lines",
+    "duration": "Length"
+  },
+  "row": {
+    "selectThisLine": "Select this line",
+    "selectNth": "Select line {{index}}",
+    "mapSpeakerWhole": "Attribute this speaker's lines to someone",
+    "whoIsThisHint": "Who's this? Tap to name them — every line follows",
+    "changeMapping": "Change who this speaker is",
+    "whoIsThisSuffix": "Who's this?",
+    "collapse": "Collapse",
+    "moreActions": "More actions",
+    "saving": "Saving…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editHint": "⌘/Ctrl+Enter to save · Esc to cancel",
+    "clickToEdit": "Tap to edit this line",
+    "deleteAnnotation": "Delete annotation {{value}}",
+    "editText": "Edit text",
+    "changeSpeaker": "Change speaker for this line",
+    "rowPickerTitle": "Who said this line?",
+    "addTagPlaceholder": "Add a tag",
+    "addNotePlaceholder": "Add a note",
+    "add": "Add",
+    "saveFailed": "Couldn't save — please try again",
+    "addTagFailed": "Couldn't add the tag",
+    "addNoteFailed": "Couldn't add the note",
+    "deleteAnnotationFailed": "Couldn't delete the annotation"
+  },
+  "picker": {
+    "defaultTitle": "Attribute to whom?",
+    "searchPlaceholder": "Search or type a new name…",
+    "loadingPeople": "Loading people…",
+    "peopleError": "Couldn't load the people list.",
+    "setUnknown": "Set as unknown (clear attribution)",
+    "personSentences_one": "{{count}} line",
+    "personSentences_other": "{{count}} lines",
+    "current": "Current",
+    "noMatch": "No one matches.",
+    "createNew": "Create “{{name}}”",
+    "createFailed": "Couldn't create — please try again",
+    "saving": "Saving…"
+  }
+}

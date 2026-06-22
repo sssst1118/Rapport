@@ -1,0 +1,29 @@
+{
+  "header": {
+    "title": "Relationship map",
+    "description": "When two people show up in the same conversation, a line connects them — a factual snapshot of the circles around you. Tap someone to see just their corner; tap the empty space to return to the whole web."
+  },
+  "states": {
+    "loading": "Drawing your web of people…",
+    "error": "Couldn't load the relationship map. Please try again in a moment.",
+    "empty": {
+      "title": "No relationships to draw yet",
+      "hint": "Record a few more conversations with others present, and a web will grow here."
+    }
+  },
+  "focus": {
+    "back": "← Back to the whole web"
+  },
+  "legend": {
+    "self": "Me",
+    "family": "Family",
+    "work": "Colleagues · work",
+    "other": "Others"
+  },
+  "canvas": {
+    "ariaLabel": "Relationship network graph"
+  },
+  "node": {
+    "ariaLabel": "{{name}} ({{relation}})"
+  }
+}

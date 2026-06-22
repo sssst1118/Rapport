@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export interface PlayLineProps {
   /** 音频地址，一般来自 client.audioUrl(conversationId) */
@@ -25,8 +26,10 @@ export function PlayLine({
   startMs,
   endMs,
   className = '',
-  label = '播放这一句',
+  label,
 }: PlayLineProps) {
+  const { t } = useTranslation('common')
+  const resolvedLabel = label ?? t('audio.playLine')
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
 
@@ -75,9 +78,9 @@ export function PlayLine({
     <button
       type="button"
       onClick={toggle}
-      aria-label={label}
+      aria-label={resolvedLabel}
       aria-pressed={playing}
-      title={label}
+      title={resolvedLabel}
       className={`inline-grid size-7 place-items-center rounded-full text-pine transition-colors hover:bg-pine/10 ${className}`}
     >
       {playing ? <StopGlyph /> : <SpeakerGlyph />}

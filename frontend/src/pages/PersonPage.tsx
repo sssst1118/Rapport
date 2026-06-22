@@ -13,6 +13,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import {
   getPerson,
@@ -32,14 +33,17 @@ import { ReviewOverlay } from './review/ReviewOverlay'
 
 type TabKey = 'history' | 'analysis' | 'relation'
 
-const TABS: PersonTab[] = [
-  { key: 'history', label: '对话历史' },
-  { key: 'analysis', label: '人物分析', interpretation: true },
-  { key: 'relation', label: '你和TA的关系', interpretation: true },
-]
-
 export function PersonPage() {
+  const { t } = useTranslation('people')
   const { id = '' } = useParams()
+
+  // Tab 标签走 i18n；interpretation 标记保持原样（决定 M4 微标）
+  const TABS: PersonTab[] = [
+    { key: 'history', label: t('tabs.history') },
+    { key: 'analysis', label: t('tabs.analysis'), interpretation: true },
+    { key: 'relation', label: t('tabs.relation'), interpretation: true },
+  ]
+
   const person = useAsync((s) => getPerson(id, s), [id])
   const utterances = useAsync((s) => getPersonUtterances(id, s), [id])
   const analysis = useAsync((s) => getPersonAnalysis(id, s), [id])
@@ -54,9 +58,9 @@ export function PersonPage() {
     [id, briefOpen],
   )
 
-  if (person.loading) return <LoadingBlock label="正在加载人物…" />
+  if (person.loading) return <LoadingBlock label={t('detail.loading')} />
   if (person.error || !person.data)
-    return <ErrorState message="打不开这个人。" onRetry={person.reload} />
+    return <ErrorState message={t('detail.error')} onRetry={person.reload} />
 
   const p = person.data
 
@@ -70,9 +74,11 @@ export function PersonPage() {
             {p.name}
           </h1>
           <p className="mt-0.5 font-ui text-sm text-ink-soft">
-            {p.relation || '未标注关系'} ·
-            <span className="font-mono"> {p.conversation_count}</span> 段对话 ·
-            <span className="font-mono"> {p.utterance_count}</span> 句
+            {p.relation || t('detail.noRelation')} ·{' '}
+            <span className="font-mono">{p.conversation_count}</span>{' '}
+            {t('detail.conversationCount', { count: p.conversation_count })} ·{' '}
+            <span className="font-mono">{p.utterance_count}</span>{' '}
+            {t('detail.utteranceCount', { count: p.utterance_count })}
           </p>
         </div>
         <Button
@@ -80,7 +86,7 @@ export function PersonPage() {
           className="shrink-0"
           onClick={() => setReviewOpen(true)}
         >
-          复盘
+          {t('detail.review')}
         </Button>
       </header>
 
@@ -89,10 +95,10 @@ export function PersonPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h2 className="font-ui text-sm font-semibold text-iris">
-              见面前的简报
+              {t('detail.brief.title')}
             </h2>
             <p className="mt-0.5 font-ui text-xs text-ink-soft">
-              快见到 {p.name} 之前，先快速回顾要点与未了结的话头。
+              {t('detail.brief.subtitle', { name: p.name })}
             </p>
           </div>
           {!briefOpen && (
@@ -101,7 +107,7 @@ export function PersonPage() {
               className="shrink-0"
               onClick={() => setBriefOpen(true)}
             >
-              准备见面 →
+              {t('detail.brief.cta')}
             </Button>
           )}
         </div>
@@ -109,7 +115,7 @@ export function PersonPage() {
         {briefOpen && (
           <div className="mt-3">
             <InterpretationCard
-              title="见面前的简报"
+              title={t('detail.brief.title')}
               interpretation={brief.data}
               loading={brief.loading}
             />
@@ -131,10 +137,12 @@ export function PersonPage() {
           id="person-panel-history"
           aria-labelledby="person-tab-history"
         >
-          {utterances.loading && <LoadingBlock label="正在加载对话历史…" />}
+          {utterances.loading && (
+            <LoadingBlock label={t('detail.history.loading')} />
+          )}
           {!utterances.loading && utterances.error && (
             <ErrorState
-              message="取不到这个人的对话历史。"
+              message={t('detail.history.error')}
               onRetry={utterances.reload}
             />
           )}
@@ -143,8 +151,8 @@ export function PersonPage() {
             utterances.data &&
             utterances.data.length === 0 && (
               <EmptyState
-                title="还没有归属到此人的发言"
-                hint="在对话里把某个说话人归属到 TA 之后，这里会出现 TA 说过的话。"
+                title={t('detail.history.emptyTitle')}
+                hint={t('detail.history.emptyHint')}
               />
             )}
           {!utterances.loading &&
@@ -168,12 +176,14 @@ export function PersonPage() {
           className="space-y-3"
         >
           <p className="font-ui text-sm text-ink-soft">
-            以下解读由语言模型生成，
-            <span className="text-iris">每条都挂着原话出处、可回放</span>
-            ——不脱离事实凭空生成。
+            {t('detail.analysis.note')}
+            <span className="text-iris">
+              {t('detail.analysis.noteEmphasis')}
+            </span>
+            {t('detail.analysis.noteTail')}
           </p>
           <InterpretationCard
-            title="人物分析"
+            title={t('detail.analysis.cardTitle')}
             interpretation={analysis.data}
             loading={analysis.loading}
           />
@@ -189,11 +199,14 @@ export function PersonPage() {
           className="space-y-3"
         >
           <p className="font-ui text-sm text-ink-soft">
-            你和 {p.name} 的关系，
-            <span className="text-iris">基于你们的真实对话、带出处可回放</span>。
+            {t('detail.relation.note', { name: p.name })}
+            <span className="text-iris">
+              {t('detail.relation.noteEmphasis')}
+            </span>
+            {t('detail.relation.noteTail')}
           </p>
           <InterpretationCard
-            title="你和 TA 的关系"
+            title={t('detail.relation.cardTitle')}
             interpretation={analysis.data}
             loading={analysis.loading}
           />

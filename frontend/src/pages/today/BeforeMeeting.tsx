@@ -6,24 +6,26 @@
  */
 
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export function BeforeMeeting() {
+  const { t } = useTranslation('today')
   return (
     <Link
       to="/people"
       className="group flex items-center justify-between gap-3 rounded-card border border-dashed border-line bg-card/40 px-4 py-3 transition-colors hover:border-pine-soft hover:bg-card/70"
     >
       <div className="min-w-0">
-        <p className="font-ui text-sm font-medium text-ink">见面前，先回看一眼</p>
+        <p className="font-ui text-sm font-medium text-ink">{t('beforeMeeting.title')}</p>
         <p className="mt-0.5 font-ui text-xs text-ink-soft">
-          翻到对方的页面，看看你们上次聊了什么。
+          {t('beforeMeeting.hint')}
         </p>
       </div>
       <span
         className="shrink-0 font-ui text-sm text-pine transition-transform group-hover:translate-x-0.5"
         aria-hidden="true"
       >
-        去人物 →
+        {t('beforeMeeting.cta')}
       </span>
     </Link>
   )

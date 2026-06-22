@@ -11,21 +11,23 @@
  * （如 `text-${x}`）。这里全部用预写好的静态类名映射。
  */
 
+import { useTranslation } from 'react-i18next'
+
 export interface ReviewStep {
   /** 步骤序号（1..4） */
   index: number
-  /** 步骤短标题 */
-  label: string
+  /** 步骤短标题的 i18n key（review 命名空间下 stepper.steps.*） */
+  labelKey: string
   /** 是否属于解读层（②③④）。事实层①为 false。 */
   interpret: boolean
 }
 
-/** 复盘四步定义，整套复盘共用。 */
+/** 复盘四步定义，整套复盘共用。标题文案走 i18n（labelKey）。 */
 export const REVIEW_STEPS: ReviewStep[] = [
-  { index: 1, label: '事实回放', interpret: false },
-  { index: 2, label: '你的视角', interpret: true },
-  { index: 3, label: '对方可能的视角', interpret: true },
-  { index: 4, label: '接下来怎么做', interpret: true },
+  { index: 1, labelKey: 'stepper.steps.fact', interpret: false },
+  { index: 2, labelKey: 'stepper.steps.yourView', interpret: true },
+  { index: 3, labelKey: 'stepper.steps.theirView', interpret: true },
+  { index: 4, labelKey: 'stepper.steps.nextStep', interpret: true },
 ]
 
 /** 当前步（激活）配色：事实层 pine / 解读层 iris。全静态，供 Tailwind 扫描。 */
@@ -49,8 +51,9 @@ export interface ReviewStepperProps {
 }
 
 export function ReviewStepper({ current, onSelect }: ReviewStepperProps) {
+  const { t } = useTranslation('review')
   return (
-    <nav aria-label="复盘步骤" className="px-5 pt-4 sm:px-6">
+    <nav aria-label={t('stepper.navLabel')} className="px-5 pt-4 sm:px-6">
       <ol className="flex flex-wrap items-center gap-1.5">
         {REVIEW_STEPS.map((step, i) => {
           const active = step.index === current
@@ -84,7 +87,7 @@ export function ReviewStepper({ current, onSelect }: ReviewStepperProps) {
                     active ? 'font-semibold' : 'font-medium',
                   ].join(' ')}
                 >
-                  {step.label}
+                  {t(step.labelKey)}
                 </span>
               </button>
               {i < REVIEW_STEPS.length - 1 && (

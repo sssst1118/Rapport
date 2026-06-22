@@ -9,6 +9,7 @@
  */
 
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export interface PersonTab {
   key: string
@@ -24,6 +25,7 @@ export interface PersonTabsProps {
 }
 
 export function PersonTabs({ tabs, active, onChange }: PersonTabsProps) {
+  const { t } = useTranslation('people')
   const refs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   function onKeyDown(e: React.KeyboardEvent, idx: number) {
@@ -39,7 +41,7 @@ export function PersonTabs({ tabs, active, onChange }: PersonTabsProps) {
   return (
     <div
       role="tablist"
-      aria-label="人物视图"
+      aria-label={t('tabs.ariaLabel')}
       className="mb-5 flex gap-1 border-b border-line"
     >
       {tabs.map((t, idx) => {

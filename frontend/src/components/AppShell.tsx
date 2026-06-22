@@ -9,21 +9,24 @@
  */
 
 import { NavLink, Outlet } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { WaveformMark } from './WaveformMark'
 import { RecordingStatus } from './RecordingStatus'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { TodayIcon, PeopleIcon, GraphIcon } from './NavIcons'
 
 interface NavItem {
   to: string
-  label: string
+  /** i18n key（common 命名空间），渲染时用 t() 翻译 */
+  labelKey: string
   icon: (p: { className?: string }) => React.ReactElement
   end?: boolean
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: '今日', icon: TodayIcon, end: true },
-  { to: '/people', label: '人物', icon: PeopleIcon },
-  { to: '/graph', label: '关系图', icon: GraphIcon },
+  { to: '/', labelKey: 'nav.today', icon: TodayIcon, end: true },
+  { to: '/people', labelKey: 'nav.people', icon: PeopleIcon },
+  { to: '/graph', labelKey: 'nav.graph', icon: GraphIcon },
 ]
 
 function navClass({ isActive }: { isActive: boolean }): string {
@@ -36,33 +39,35 @@ function navClass({ isActive }: { isActive: boolean }): string {
 }
 
 export function AppShell() {
+  const { t } = useTranslation('common')
   return (
     <div className="min-h-dvh bg-paper text-ink">
       {/* 常驻顶栏 */}
       <header className="sticky top-0 z-20 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          <NavLink to="/" className="flex items-center gap-2.5" aria-label="Rapport 首页">
+          <NavLink to="/" className="flex items-center gap-2.5" aria-label={t('nav.home')}>
             <WaveformMark height={20} />
             <span className="font-ui text-lg font-semibold tracking-tight text-ink">
               Rapport
             </span>
           </NavLink>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
             <RecordingStatus />
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
       <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6 sm:px-6">
         {/* 左侧导航（窄屏退到顶部横排） */}
-        <nav className="hidden w-44 shrink-0 sm:block" aria-label="主导航">
+        <nav className="hidden w-44 shrink-0 sm:block" aria-label={t('nav.main')}>
           <div className="sticky top-20 space-y-1">
             {NAV.map((item) => {
               const Icon = item.icon
               return (
                 <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
                   <Icon className="shrink-0" />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                 </NavLink>
               )
             })}
@@ -76,7 +81,7 @@ export function AppShell() {
               >
                 §
               </span>
-              <span>样式手册</span>
+              <span>{t('nav.styleguide')}</span>
             </NavLink>
           </div>
         </nav>
@@ -84,7 +89,7 @@ export function AppShell() {
         {/* 窄屏顶部横排导航 */}
         <nav
           className="fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-paper/95 px-2 py-1.5 backdrop-blur sm:hidden"
-          aria-label="主导航"
+          aria-label={t('nav.main')}
         >
           {NAV.map((item) => {
             const Icon = item.icon
@@ -100,7 +105,7 @@ export function AppShell() {
                 }
               >
                 <Icon />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </NavLink>
             )
           })}

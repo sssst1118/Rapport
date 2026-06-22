@@ -12,6 +12,7 @@
  */
 
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { personColor } from '../../lib/personColor'
 import { groupStyle } from './groups'
 import { endpointId } from './layout'
@@ -45,6 +46,8 @@ export function GraphCanvas({
   onBackground,
   version,
 }: GraphCanvasProps) {
+  const { t } = useTranslation('graph')
+
   // 聚焦子图：focus 节点 + 其直接邻居的 id 集合。focusId 为空则全亮。
   const visibleIds = useMemo<Set<number> | null>(() => {
     if (focusId == null) return null
@@ -75,7 +78,7 @@ export function GraphCanvas({
       width="100%"
       height={height}
       role="img"
-      aria-label="关系网络图"
+      aria-label={t('canvas.ariaLabel')}
       className="block touch-none select-none"
       onClick={onBackground}
     >
@@ -136,7 +139,11 @@ export function GraphCanvas({
                 onNodeClick(n.id)
               }}
               role="button"
-              aria-label={`${n.name}${n.relation ? `（${n.relation}）` : ''}`}
+              aria-label={
+                n.relation
+                  ? t('node.ariaLabel', { name: n.name, relation: n.relation })
+                  : n.name
+              }
               tabIndex={dim ? -1 : 0}
               onKeyDown={(ev) => {
                 if (ev.key === 'Enter' || ev.key === ' ') {

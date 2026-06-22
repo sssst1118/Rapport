@@ -6,6 +6,7 @@
  * <PlayLine> 跳播原声（start_ms ~ end_ms）。绝不掺解读，只呈现说过的话。
  */
 
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import type { PersonUtterance } from '../../api/types'
 import { audioUrl } from '../../api/client'
@@ -55,6 +56,7 @@ export function PersonHistoryList({
   personId,
   utterances,
 }: PersonHistoryListProps) {
+  const { t } = useTranslation('people')
   const groups = groupByConversation(utterances)
 
   return (
@@ -70,17 +72,18 @@ export function PersonHistoryList({
             <header className="flex items-baseline justify-between gap-3 border-b border-line px-4 py-3">
               <div className="min-w-0">
                 <h3 className="truncate font-record text-base text-ink">
-                  {g.note?.trim() || '一段对话'}
+                  {g.note?.trim() || t('historyList.untitled')}
                 </h3>
                 <p className="mt-0.5 font-mono text-[11px] text-ink-soft/80">
-                  {formatDateTime(g.startedAt)} · {g.items.length} 句
+                  {formatDateTime(g.startedAt)} · {g.items.length}{' '}
+                  {t('historyList.sentenceCount', { count: g.items.length })}
                 </p>
               </div>
               <Link
                 to={`/conversations/${g.conversationId}`}
                 className="shrink-0 font-ui text-sm font-medium text-pine hover:underline"
               >
-                进入对话 →
+                {t('historyList.enter')}
               </Link>
             </header>
 

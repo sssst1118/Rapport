@@ -3,10 +3,13 @@
  * 各占位页/屏级实现都靠这几个，保证「后端没起也不白屏」。
  */
 
-export function LoadingBlock({ label = '正在加载…' }: { label?: string }) {
+import { useTranslation } from 'react-i18next'
+
+export function LoadingBlock({ label }: { label?: string }) {
+  const { t } = useTranslation('common')
   return (
     <div className="space-y-3" role="status" aria-live="polite">
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t('state.loading')}</span>
       {[0, 1, 2].map((i) => (
         <div
           key={i}
@@ -38,22 +41,23 @@ export function EmptyState({
 }
 
 export function ErrorState({
-  message = '加载失败，请稍后再试。',
+  message,
   onRetry,
 }: {
   message?: string
   onRetry?: () => void
 }) {
+  const { t } = useTranslation('common')
   return (
     <div className="rounded-card border border-dashed border-line bg-card/60 px-6 py-10 text-center">
-      <p className="font-ui text-sm text-ink-soft">{message}</p>
+      <p className="font-ui text-sm text-ink-soft">{message ?? t('state.error')}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
           className="mt-3 font-ui text-sm font-medium text-pine hover:underline"
         >
-          重试
+          {t('state.retry')}
         </button>
       )}
     </div>

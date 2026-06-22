@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Utterance, ParticipantRef } from '../../api/types'
 import {
   updateUtteranceText,
@@ -54,6 +55,7 @@ export function UtteranceRow({
   onReload,
   onOpenSpeakerMap,
 }: UtteranceRowProps) {
+  const { t } = useTranslation('conversation')
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(u.text)
@@ -106,7 +108,7 @@ export function UtteranceRow({
       setEditing(false)
       onReload()
     } catch {
-      setErr('保存失败，请重试')
+      setErr(t('row.saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -122,7 +124,7 @@ export function UtteranceRow({
       setTagInput('')
       onReload()
     } catch {
-      setErr('添加标签失败')
+      setErr(t('row.addTagFailed'))
     } finally {
       setSaving(false)
     }
@@ -138,7 +140,7 @@ export function UtteranceRow({
       setNoteInput('')
       onReload()
     } catch {
-      setErr('添加批注失败')
+      setErr(t('row.addNoteFailed'))
     } finally {
       setSaving(false)
     }
@@ -151,7 +153,7 @@ export function UtteranceRow({
       await deleteAnnotation(aid)
       onReload()
     } catch {
-      setErr('删除标注失败')
+      setErr(t('row.deleteAnnotationFailed'))
     } finally {
       setSaving(false)
     }
@@ -168,7 +170,7 @@ export function UtteranceRow({
         className={`flex shrink-0 items-start pt-1.5 transition-opacity ${
           selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
         }`}
-        title="选中这一行"
+        title={t('row.selectThisLine')}
       >
         <input
           type="checkbox"
@@ -177,7 +179,7 @@ export function UtteranceRow({
             onToggleSelect(u.id, (e.nativeEvent as MouseEvent).shiftKey)
           }
           className="size-3.5 accent-pine"
-          aria-label={`选中第 ${index + 1} 句`}
+          aria-label={t('row.selectNth', { index: index + 1 })}
         />
       </label>
 
@@ -185,7 +187,7 @@ export function UtteranceRow({
       <button
         type="button"
         onClick={() => onOpenSpeakerMap({ label: u.speaker_label, personId: u.person_id })}
-        title="把这个说话人整段归属到某人"
+        title={t('row.mapSpeakerWhole')}
         className="flex shrink-0 self-stretch rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-pine/50"
       >
         <SpeakerStripe colorKey={stripeKey} width={4} title={u.speaker_label} />
@@ -202,10 +204,10 @@ export function UtteranceRow({
                 ? 'bg-pine/10 text-pine ring-1 ring-pine/40 hover:bg-pine/20'
                 : 'text-ink-soft hover:bg-ink/5 hover:text-ink'
             }`}
-            title={unmapped ? '这是谁？点一下认人，整段一起归属' : '改这个说话人的归属'}
+            title={unmapped ? t('row.whoIsThisHint') : t('row.changeMapping')}
           >
             {person ? person.name : u.speaker_label}
-            {unmapped && <span className="ml-1">· 这是谁？</span>}
+            {unmapped && <span className="ml-1">· {t('row.whoIsThisSuffix')}</span>}
           </button>
 
           <span className="font-mono text-[11px] text-ink-soft/70">
@@ -221,7 +223,7 @@ export function UtteranceRow({
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            title={expanded ? '收起' : '更多操作'}
+            title={expanded ? t('row.collapse') : t('row.moreActions')}
             className="ml-auto inline-grid size-7 place-items-center rounded-full text-ink-soft opacity-0 transition-colors hover:bg-ink/5 hover:text-ink group-hover:opacity-100 focus-visible:opacity-100 aria-expanded:opacity-100"
           >
             <span className="text-lg leading-none">⋯</span>
@@ -252,7 +254,7 @@ export function UtteranceRow({
             />
             <div className="mt-1.5 flex items-center gap-2">
               <Button variant="primary" onClick={() => void saveText()} disabled={saving}>
-                {saving ? '保存中…' : '保存'}
+                {saving ? t('row.saving') : t('row.save')}
               </Button>
               <Button
                 variant="ghost"
@@ -262,15 +264,15 @@ export function UtteranceRow({
                 }}
                 disabled={saving}
               >
-                取消
+                {t('row.cancel')}
               </Button>
-              <span className="font-ui text-xs text-ink-soft/70">⌘/Ctrl+Enter 保存 · Esc 取消</span>
+              <span className="font-ui text-xs text-ink-soft/70">{t('row.editHint')}</span>
             </div>
           </div>
         ) : (
           <p
             onClick={startEdit}
-            title="点一下编辑这句话"
+            title={t('row.clickToEdit')}
             className="cursor-text font-record text-[15px] leading-relaxed text-ink"
           >
             {u.text}
@@ -291,7 +293,7 @@ export function UtteranceRow({
                   type="button"
                   onClick={() => void removeAnnotation(a.id)}
                   disabled={saving}
-                  aria-label={`删除标注 ${a.value}`}
+                  aria-label={t('row.deleteAnnotation', { value: a.value })}
                   className="ml-0.5 rounded-full px-0.5 text-ink-soft/60 hover:text-ink disabled:opacity-50"
                 >
                   ×
@@ -307,18 +309,18 @@ export function UtteranceRow({
             <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
               {!editing && (
                 <Button variant="secondary" onClick={startEdit}>
-                  编辑文字
+                  {t('row.editText')}
                 </Button>
               )}
 
               {/* 改这一行的说话人 —— 单行 PersonPicker */}
               <div className="relative">
                 <Button variant="secondary" onClick={() => setRowPicker((v) => !v)}>
-                  改这一行说话人
+                  {t('row.changeSpeaker')}
                 </Button>
                 {rowPicker && (
                   <PersonPicker
-                    title="这一行是谁说的？"
+                    title={t('row.rowPickerTitle')}
                     currentPersonId={u.person_id}
                     allowClear
                     onClose={() => setRowPicker(false)}
@@ -345,12 +347,12 @@ export function UtteranceRow({
                   type="text"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
-                  placeholder="加标签"
+                  placeholder={t('row.addTagPlaceholder')}
                   disabled={saving}
                   className="min-w-0 flex-1 rounded-sm border border-line bg-paper px-2 py-1 font-ui text-xs text-ink outline-none placeholder:text-ink-soft/60 focus:border-pine disabled:opacity-50"
                 />
                 <Button variant="ghost" type="submit" disabled={saving || !tagInput.trim()}>
-                  加
+                  {t('row.add')}
                 </Button>
               </form>
 
@@ -366,12 +368,12 @@ export function UtteranceRow({
                   type="text"
                   value={noteInput}
                   onChange={(e) => setNoteInput(e.target.value)}
-                  placeholder="加批注"
+                  placeholder={t('row.addNotePlaceholder')}
                   disabled={saving}
                   className="min-w-0 flex-1 rounded-sm border border-line bg-paper px-2 py-1 font-ui text-xs text-ink outline-none placeholder:text-ink-soft/60 focus:border-pine disabled:opacity-50"
                 />
                 <Button variant="ghost" type="submit" disabled={saving || !noteInput.trim()}>
-                  加
+                  {t('row.add')}
                 </Button>
               </form>
             </div>

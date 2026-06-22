@@ -1,0 +1,92 @@
+{
+  "brand": { "tagline": "记录与旁批" },
+  "nav": { "today": "今日", "people": "人物", "graph": "关系图", "styleguide": "样式手册", "home": "Rapport 首页", "main": "主导航" },
+  "lang": { "label": "语言" },
+  "recording": {
+    "live": "正在录音",
+    "paused": "已暂停",
+    "idle": "未在录音",
+    "pause": "暂停",
+    "resume": "继续",
+    "discard": "这段别留"
+  },
+  "state": {
+    "loading": "正在加载…",
+    "error": "加载失败，请稍后再试。",
+    "retry": "重试"
+  },
+  "interpretation": {
+    "badge": "解读",
+    "empty": "暂无可呈现的解读。",
+    "needsSetup": "需要先配置才能生成解读。",
+    "error": "这次没能生成解读，待会儿再试。"
+  },
+  "citation": {
+    "noSource": "（暂无可回放的原话出处）",
+    "replaySpeaker": "回放 {{speaker}} 这一句"
+  },
+  "audio": {
+    "play": "播放",
+    "pause": "暂停",
+    "playLine": "播放这一句",
+    "loading": "正在加载音频…",
+    "unavailable": "音频暂不可用"
+  },
+  "notFound": {
+    "title": "这里什么也没有",
+    "description": "你要找的页面不存在。",
+    "backToToday": "回到今日"
+  },
+  "styleguide": {
+    "title": "样式手册",
+    "description": "《记录与旁批》设计系统的可视基准 —— 色、字、件。",
+    "section": {
+      "palette": "调色板",
+      "type": "字体 · 三角色",
+      "mark": "波形品牌印记 WaveformMark",
+      "color": "人即颜色 · Avatar / SpeakerStripe",
+      "player": "波形播放器 WaveformPlayer / PlayLine",
+      "interpretation": "解读卡 InterpretationCard · 页边旁批",
+      "button": "按钮 Button",
+      "states": "状态件 · loading / 空 / 错误"
+    },
+    "swatch": {
+      "ink": "正文（事实）",
+      "inkSoft": "次级文字 / 标签",
+      "paper": "应用底色 燕麦",
+      "card": "抬升表面 卡片",
+      "line": "细分隔线",
+      "pine": "品牌 / 真相锚",
+      "pineSoft": "pine 次级 / hover",
+      "iris": "解读层 专用",
+      "irisTint": "解读卡背景",
+      "live": "仅录制指示点"
+    },
+    "type": {
+      "recordLabel": "记录体 · 人说的话（霞鹜文楷 / Literata）",
+      "recordSample": "“我们那天聊到很晚，他说他其实一直想换一种活法。”",
+      "recordSampleLatin": "The quiet things that no one ever knows.",
+      "uiLabel": "界面体 · chrome（Noto Sans SC / Hanken Grotesk）",
+      "uiSample": "今日 · 人物 · 关系图 — 安静、现代、退到后面",
+      "monoLabel": "记录时刻体 · 数据（IBM Plex Mono）",
+      "monoSample": "0:42 / 3:17 · A · B · {{count}} 句"
+    },
+    "transcriptSample": "{{name}}：这是带行首色条的一行转写示例。",
+    "playLineHint": "行内 PlayLine：点一下跳播某句区间（后端未起时静默不报错）",
+    "interpretation": {
+      "conversationTitle": "这次对话的小结",
+      "personTitle": "关于这个人"
+    },
+    "sampleInterpretationMessage": "（示例）这里将显示对这段对话的解读与小结。",
+    "button": {
+      "primary": "主操作",
+      "secondary": "次操作",
+      "ghost": "低强度",
+      "disabled": "禁用"
+    },
+    "states": {
+      "emptyTitle": "什么也没有",
+      "emptyHint": "这是空态示例。"
+    }
+  }
+}

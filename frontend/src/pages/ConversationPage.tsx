@@ -19,6 +19,7 @@
 
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   audioUrl,
   getConversation,
@@ -41,6 +42,7 @@ import { PersonPicker } from './conversation/PersonPicker'
 import { ReviewOverlay } from './review/ReviewOverlay'
 
 export function ConversationPage() {
+  const { t } = useTranslation('conversation')
   const { id = '' } = useParams()
   const { data, loading, error, reload } = useAsync(
     (s) => getConversation(id, s),
@@ -71,9 +73,9 @@ export function ConversationPage() {
     return data.utterances.filter((u) => selectedIds.has(u.id)).map((u) => u.id)
   }, [data, selectedIds])
 
-  if (loading) return <LoadingBlock label="正在加载对话…" />
+  if (loading) return <LoadingBlock label={t('page.loading')} />
   if (error || !data)
-    return <ErrorState message="打不开这段对话。" onRetry={reload} />
+    return <ErrorState message={t('page.openError')} onRetry={reload} />
 
   const src = audioUrl(data.id)
 
@@ -132,11 +134,11 @@ export function ConversationPage() {
   return (
     <section className="pb-24">
       <PageHeader
-        title={data.note?.trim() || '一段对话'}
+        title={data.note?.trim() || t('page.fallbackTitle')}
         description={formatDateTime(data.started_at)}
         actions={
           <Button variant="secondary" onClick={() => setReviewOpen(true)}>
-            复盘
+            {t('page.review')}
           </Button>
         }
       />
@@ -155,7 +157,7 @@ export function ConversationPage() {
         {/* 事实层：转写正文 + 逐行交互 */}
         <div className="min-w-0">
           {data.utterances.length === 0 ? (
-            <EmptyState title="这段对话还没有转写文字" />
+            <EmptyState title={t('page.emptyTranscript')} />
           ) : (
             <ol className="space-y-1">
               {data.utterances.map((u, i) => (
@@ -179,7 +181,7 @@ export function ConversationPage() {
         {/* 解读层：页边旁批 */}
         <aside className="space-y-4 lg:pt-1">
           <InterpretationCard
-            title="这次对话的小结"
+            title={t('page.summaryTitle')}
             interpretation={summary.data}
             loading={summary.loading}
           />
@@ -187,7 +189,7 @@ export function ConversationPage() {
           {/* ④ 「就这段分析」结果，单独一张解读卡（仅在发起后出现） */}
           {(analyzing || segment) && (
             <InterpretationCard
-              title={`就这段分析（${selectedCount} 句）`}
+              title={t('page.segmentTitle', { count: selectedCount })}
               interpretation={segment}
               loading={analyzing}
             />
@@ -200,7 +202,7 @@ export function ConversationPage() {
         <div className="fixed inset-0 z-20" aria-hidden={false}>
           <div className="absolute left-1/2 top-1/3 -translate-x-1/2">
             <PersonPicker
-              title={`把说话人「${speakerMap.label}」整段归属到…`}
+              title={t('page.speakerMapTitle', { label: speakerMap.label })}
               currentPersonId={speakerMap.personId}
               allowClear
               onClose={() => setSpeakerMap(null)}
@@ -215,17 +217,17 @@ export function ConversationPage() {
         <div className="fixed inset-x-0 bottom-6 z-20 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-card border border-line bg-paper px-4 py-2.5 shadow-lg">
             <span className="font-ui text-sm text-ink">
-              已选 <span className="font-mono">{selectedCount}</span> 句
+              {t('selection.selected', { count: selectedCount })}
             </span>
             <Button
               variant="primary"
               onClick={() => void analyzeSegment()}
               disabled={analyzing}
             >
-              {analyzing ? '分析中…' : '就这段分析'}
+              {analyzing ? t('selection.analyzing') : t('selection.analyzeSegment')}
             </Button>
             <Button variant="ghost" onClick={clearSelection}>
-              取消选择
+              {t('selection.clear')}
             </Button>
           </div>
         </div>
@@ -236,7 +238,7 @@ export function ConversationPage() {
         <ReviewOverlay
           scope="conversation"
           id={data.id}
-          title={data.note?.trim() || '一段对话'}
+          title={data.note?.trim() || t('page.fallbackTitle')}
           onClose={() => setReviewOpen(false)}
         />
       )}
