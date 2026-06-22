@@ -17,7 +17,7 @@ Record your real-world conversations, organize them around *people* — not time
 
 ---
 
-> 🚧 **Status: early development.** **M1–M3 work today** — record → transcribe → local SQLite + full-text search, plus a people-centric desktop app (Today · conversation · people · relationship graph · review). On-demand AI Q&A is next (M4). Star the repo to follow along.
+> 🚧 **Status: early development.** **M1–M4 work today** — record → transcribe → local SQLite + full-text search, a people-centric **bilingual (EN/中)** desktop app (Today · conversation · people · relationship graph · review), and on-demand AI readings that run **100% locally via Ollama (no API key)** and **cite the original audio** behind every judgment. Star the repo to follow along.
 
 ## Stop guessing where you stand
 
@@ -114,10 +114,10 @@ rapport devices            # list microphones (record --device N to pick one)
 - [x] **M1** — Record + local transcription + simple UI ✅
 - [x] **M2** — Local SQLite storage + full-text search + ingest ✅ *(diarization seam ready; pyannote optional)*
 - [ ] **Always-on capture** — continuous background recording (the real record, not just manual clips)
-- [x] **M3** — People-centric desktop app + annotations ✅ *(FastAPI + React: Today · conversation · people · relationship graph · review; facts are live, AI analysis stubbed until M4)*
-- [ ] **M4** — On-demand Q&A (RAG) — the AI analysis behind summaries, profiles & perspective-switch
+- [x] **M3** — People-centric desktop app + annotations ✅ *(FastAPI + React, bilingual EN/中: Today · conversation · people · relationship graph · review)*
+- [x] **M4** — On-demand AI readings ✅ *(pluggable LLM — local **Ollama**, no API key, or bring your own; every reading separates fact from interpretation and **cites the original quote + audio**)*
 - [ ] **M5** — Local REST API + MCP server + Windows packaging
-- [ ] **M6** — Voiceprint ID · local LLM · macOS
+- [ ] **M6** — Voiceprint ID · macOS
 
 ## License
 
