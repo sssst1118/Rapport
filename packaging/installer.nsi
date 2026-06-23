@@ -1,4 +1,4 @@
-; Rapport NSIS 安装器脚本
+﻿; Rapport NSIS 安装器脚本
 ; 把 PyInstaller 的 onedir 产物 dist\Rapport\ 装进 $PROGRAMFILES64\Rapport，
 ; 建开始菜单 + 桌面快捷方式、卸载器，提供「开机自启」可选项。
 ;
@@ -31,9 +31,12 @@ InstallDirRegKey HKLM "Software\${APPNAME}" "InstallDir"
 RequestExecutionLevel admin  ; 写 Program Files + 卸载注册表需要管理员。
 
 !define MUI_ABORTWARNING
-; 有图标就用（与 PyInstaller 同一枚）。
-!define MUI_ICON "rapport.ico"
-!define MUI_UNICON "rapport.ico"
+; 有自定义图标就用（与 PyInstaller 同一枚 rapport.ico）；没有则用 NSIS 默认图标。
+; P3 未提供 .ico 时这两段不展开，安装器仍能正常编译。
+!if /FileExists "rapport.ico"
+  !define MUI_ICON "rapport.ico"
+  !define MUI_UNICON "rapport.ico"
+!endif
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY

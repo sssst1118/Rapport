@@ -33,6 +33,9 @@ MANIFEST
 *.spec
 # 例外：packaging/ 下的 spec 是手写源配置，要提交（不是 PyInstaller 自动生成的根 spec）。
 !packaging/rapport.spec
+# 但 NSIS 编译出的安装器 exe 是二进制产物，绝不提交。
+packaging/*.exe
+packaging/RapportSetup.exe
 
 # Installer logs
 pip-log.txt
