@@ -116,7 +116,10 @@ rapport devices            # list microphones (record --device N to pick one)
 - [ ] **Always-on capture** — continuous background recording (the real record, not just manual clips)
 - [x] **M3** — People-centric desktop app + annotations ✅ *(FastAPI + React, bilingual EN/中: Today · conversation · people · relationship graph · review)*
 - [x] **M4** — On-demand AI readings ✅ *(pluggable LLM — local **Ollama**, no API key, or bring your own; every reading separates fact from interpretation and **cites the original quote + audio**)*
-- [ ] **M5** — Local REST API + MCP server + Windows packaging
+- **M5** — Human-context layer for your AI *(in progress)*
+  - [x] **MCP server** ✅ — built on the official Python MCP SDK (FastMCP), stdio transport; exposes 7 read-only structured tools (`list_people` / `search_people` / `get_person` / `get_conversation` / `list_conversations` / `relationship_graph` / `search_utterances`); pure data, zero AI, zero API key; reuses the existing local DB layer, no web server required; every returned utterance carries a replayable citation (utterance_id + conversation_id + timestamp)
+  - [ ] Windows `.exe` packaging — PyInstaller/NSIS, system-tray icon, recording indicator
+  - [ ] Always-on background recording — continuous capture, always running
 - [ ] **M6** — Voiceprint ID · macOS
 
 ## License
