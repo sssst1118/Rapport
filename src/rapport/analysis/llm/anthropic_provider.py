@@ -25,17 +25,24 @@ class AnthropicProvider:
     """调用 Claude 的 LLMProvider 实现。"""
 
     def __init__(self, model: str | None = None) -> None:
-        """记录模型名；不在这里建客户端（惰性，避免无 key/无包时构造即失败）。
+        """记录模型名与 api key；不在这里建客户端（惰性，避免无 key/无包时构造即失败）。
 
         Args:
             model: 模型 id；缺省读 config.LLM_MODEL（再缺省 claude-opus-4-8）。
-        """
-        if model is None:
-            try:
-                from ... import config
 
+        api key 取自 config.anthropic_api_key()（裸 env ANTHROPIC_API_KEY >
+        config.json anthropic_api_key > None）。为 None 时把 client 构造交给 SDK
+        默认行为（仍会自动从 env 读，env 也没有则报缺 key），与改前等价。
+        """
+        self.api_key: str | None = None
+        try:
+            from ... import config
+
+            if model is None:
                 model = getattr(config, "LLM_MODEL", _DEFAULT_MODEL)
-            except Exception:  # noqa: BLE001 - 配置不可用也不该阻断构造
+            self.api_key = config.anthropic_api_key()
+        except Exception:  # noqa: BLE001 - 配置不可用也不该阻断构造
+            if model is None:
                 model = _DEFAULT_MODEL
         self.model = model or _DEFAULT_MODEL
 
@@ -56,8 +63,13 @@ class AnthropicProvider:
             ) from exc
 
         try:
-            # 自动从环境变量 ANTHROPIC_API_KEY 读取 key。
-            client = anthropic.Anthropic()
+            # key 优先用 config 解析出的（env ANTHROPIC_API_KEY > config.json）；
+            # 为 None 时退回 SDK 默认行为（自动从环境变量读）。
+            client = (
+                anthropic.Anthropic(api_key=self.api_key)
+                if self.api_key
+                else anthropic.Anthropic()
+            )
             resp = client.messages.create(
                 model=self.model,
                 max_tokens=16000,
