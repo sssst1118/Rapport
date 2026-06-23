@@ -9,6 +9,7 @@
     rapport search QUERY             全文检索话语。
     rapport watch [--device D]       常驻后台录音：持续采集→切句→转写→入当天对话。
     rapport serve [--port 8000]      启动 FastAPI Web 后端。
+    rapport app [--port 8000]        桌面常驻应用：系统托盘 + web 界面 + 常驻录音。
     rapport mcp                      以 stdio 启动 MCP server（暴露只读数据工具给 AI 助手）。
 
 入口函数 main 供 [project.scripts] 的 rapport=rapport.__main__:main 调用。
@@ -208,6 +209,26 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_app(args: argparse.Namespace) -> int:
+    """桌面常驻应用：单进程内同时跑系统托盘 + 本地 web 界面 + 常驻录音 Engine。
+
+    托盘图标颜色 = 持续可见的录制指示（红=录音/黄=暂停/灰=未录音），菜单控制
+    暂停/继续、打开界面、退出。默认启动即录音（always-on 本色）；--no-record 则
+    起来先不自动录音（调试/隐私）。
+
+    GUI/重依赖（pystray/uvicorn/sounddevice 等）只在本命令内（desktop.runtime）延迟
+    导入，其余子命令不受影响。
+    """
+    from .desktop.runtime import run_app
+
+    return run_app(
+        port=args.port,
+        host=args.host,
+        device=args.device,
+        record=not args.no_record,
+    )
+
+
 def _cmd_mcp(args: argparse.Namespace) -> int:
     """以 stdio 启动 MCP server，把本地只读数据做成工具暴露给 AI 助手。
 
@@ -286,6 +307,27 @@ def _build_parser() -> argparse.ArgumentParser:
         "--reload", action="store_true", help="开发模式：代码改动自动重载"
     )
     p_serve.set_defaults(func=_cmd_serve)
+
+    p_app = subparsers.add_parser(
+        "app", help="桌面常驻应用：系统托盘 + web 界面 + 常驻录音（单进程）"
+    )
+    p_app.add_argument(
+        "--port", type=int, default=8000, help="web 界面端口（默认 8000）"
+    )
+    p_app.add_argument(
+        "--host", default="127.0.0.1", help="监听地址（默认 127.0.0.1）"
+    )
+    p_app.add_argument(
+        "--device",
+        default=None,
+        help="录音输入设备索引或名称（默认配置/系统默认；见 rapport devices）",
+    )
+    p_app.add_argument(
+        "--no-record",
+        action="store_true",
+        help="启动时不自动录音（调试/隐私）；可在托盘菜单开始",
+    )
+    p_app.set_defaults(func=_cmd_app)
 
     p_mcp = subparsers.add_parser(
         "mcp", help="以 stdio 启动 MCP server（暴露只读数据工具给 AI 助手）"

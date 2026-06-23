@@ -17,6 +17,8 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "mcp",
+    "pystray",
+    "Pillow",
 ]
 
 [project.optional-dependencies]
