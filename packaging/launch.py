@@ -13,8 +13,40 @@ from __future__ import annotations
 import sys
 
 
+def _ensure_streams() -> None:
+    """windowed（无控制台）模式下 sys.stdout/stderr 为 None：uvicorn 配置日志时会对其
+    调 isatty() 而崩（'NoneType' object has no attribute 'isatty'），run_app 的 print
+    也会因 None 而崩。把 None 的流重定向到用户数据目录的 rapport.log（行缓冲、utf-8），
+    既消除崩溃又留运行日志；连日志文件都开不了时退回 devnull，确保流非 None。"""
+    if sys.stdout is not None and sys.stderr is not None:
+        return
+    stream = None
+    try:
+        from rapport._frozen import data_root
+
+        log_dir = data_root()
+        log_dir.mkdir(parents=True, exist_ok=True)
+        stream = open(log_dir / "rapport.log", "a", encoding="utf-8", buffering=1)
+    except Exception:
+        try:
+            import io
+            import os
+
+            stream = io.TextIOWrapper(open(os.devnull, "wb"), encoding="utf-8")
+        except Exception:
+            return
+    if sys.stdout is None:
+        sys.stdout = stream
+    if sys.stderr is None:
+        sys.stderr = stream
+
+
 def _main() -> int:
-    # stdout/stderr 切 UTF-8（与 __main__.main 一致），windowed 模式下二者可能为 None。
+    # windowed 模式先把 None 的 stdout/stderr 接到 rapport.log，否则 uvicorn 日志配置的
+    # isatty() 与 run_app 的 print 都会因 None 崩溃（exitcode=1 静默闪退）。
+    _ensure_streams()
+
+    # stdout/stderr 切 UTF-8（与 __main__.main 一致）。
     from rapport.__main__ import _force_utf8_stdout
 
     _force_utf8_stdout()
