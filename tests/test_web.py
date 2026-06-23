@@ -57,7 +57,14 @@ def seeded(tmp_path):
     cid2 = db.add_conversation(note="散步")
     db.add_utterance(cid2, text="实习还顺利吗", speaker_label="A", person_id=li)
 
-    app = create_app(db_path=tmp_path / "rapport.db", repo_root=tmp_path)
+    # 显式隔离 status_path 到 tmp（不存在→默认未录音），否则 /api/status 会读真实的
+    # data/recording_status.json——本机跑过 always-on 后它可能残留 recording:true，
+    # 让 test_状态诚实显示未录音 在干净代码上也偶发变红（测试隔离脆弱性）。
+    app = create_app(
+        db_path=tmp_path / "rapport.db",
+        repo_root=tmp_path,
+        status_path=tmp_path / "recording_status.json",
+    )
     client = TestClient(app)
     ids = {
         "wo": wo, "wang": wang, "li": li,
