@@ -122,14 +122,24 @@ RAPPORT_DB_PATH=data/demo.db rapport serve
 
 ### 4. 配置语言模型（开启 AI 解读 · 可选）
 
-不配也能用：界面、录音、检索、标注全都正常，只是每条 AI 解读会显示「未配置」。配上才有「按需解读」（M4），且**每条解读都事实与解读分离、挂原话出处 + 可回放原声**。两种后端，二选一：
+不配也能用：界面、录音、检索、标注全都正常，只是每条 AI 解读会显示「未配置」。配上才有「按需解读」（M4），且**每条解读都事实与解读分离、挂原话出处 + 可回放原声**。
+
+**三种配置方式，按需选一种：**
+
+| 方式 | 适合场景 | 操作 |
+| --- | --- | --- |
+| **① 界面内「设置」页**（顶栏/侧栏齿轮图标） | 打包应用（`.exe`）首选，零环境变量 | 打开界面 → 点齿轮 → 填写后端 / 模型名 / API Key → 保存。立即生效，持久化到 `%LOCALAPPDATA%\Rapport\config.json`。 |
+| **② 手动编辑 `%LOCALAPPDATA%\Rapport\config.json`** | 脚本/批量部署 | 直接编辑 JSON 文件，下次启动生效。 |
+| **③ 环境变量**（优先级最高） | CLI、自动化 | 见下方示例，会覆盖 config.json 的配置。 |
+
+优先级：**环境变量 > config.json > 默认值**。
 
 **A. 本地 Ollama（推荐 · 全本地、零 API key、数据不出设备）**
 
 ```bash
 # 1) 装 Ollama（https://ollama.com），拉一个对话模型：
 ollama pull qwen2.5:7b-instruct        # 任意 chat 模型皆可，按机器配置选大小
-# 2) 启动时指定后端（解读语言跟随界面 EN/中）：
+# 2) 用环境变量指定后端（解读语言跟随界面 EN/中）：
 # Windows PowerShell:
 $env:RAPPORT_LLM_PROVIDER="ollama"; $env:RAPPORT_LLM_MODEL="qwen2.5:7b-instruct"; rapport serve
 # macOS / Linux:
@@ -152,7 +162,7 @@ RAPPORT_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... RAPPORT_LLM_MODEL=cl
 | `RAPPORT_LLM_MODEL` | 模型名 | 如 `qwen2.5:7b-instruct` / `claude-opus-4-8` |
 | `ANTHROPIC_API_KEY` | Anthropic 的 key | 仅 `provider=anthropic` 时需要 |
 
-> 上面这些环境变量对 `rapport serve` / `rapport app` 同样生效。`rapport app` 当前从启动时的环境变量读配置（双击的 .exe 暂无内置设置界面，配置方式见下文「已知缺口」）。
+> 环境变量会覆盖 config.json，对 `rapport serve` / `rapport app` 同样生效。
 
 ### 命令行小工具
 
@@ -173,8 +183,8 @@ RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU（需 CUDA 运
 
 ### 已知限制（M5 打包现状）
 
-- **打包应用暂无内置设置界面**：语言模型、麦克风设备等仍靠环境变量配置（见上）。双击的 `.exe` 默认 `provider=none`（无 AI 解读）；想在打包应用里启用 AI 解读，目前需用带环境变量的快捷方式 / 命令启动。**内置设置界面 + 配置文件支持在规划中。**
-- **托盘应用没有主窗口**：退出 = 右键托盘图标 →「退出」；图标被折叠到「^」里找不到时，用 `taskkill /F /IM Rapport.exe`。
+- **打包应用已内置「设置」页**：点顶栏/侧栏齿轮图标，直接在界面内配语言模型后端、模型名和 API Key，保存即生效，持久化到 `%LOCALAPPDATA%\Rapport\config.json`。环境变量仍可使用，且优先级高于 config.json。
+- **`rapport app` 启动后自动打开界面**：默认浏览器会自动打开 `http://127.0.0.1:8000`（加 `--no-open` 可关闭）。退出 = 右键托盘图标 →「退出」（已可靠终止进程）；图标折叠到「^」找不到时，用 `taskkill /F /IM Rapport.exe` 兜底。
 - 首次转写需联网下载 Whisper 模型；未代码签名，首次运行 SmartScreen 可能提示。
 
 ## 路线图

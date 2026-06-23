@@ -122,14 +122,24 @@ RAPPORT_DB_PATH=data/demo.db rapport serve
 
 ### 4. Configure the language model (enable AI readings · optional)
 
-Works without it: the UI, recording, search and annotations all run — only the AI readings show "not configured." Configure one to unlock on-demand readings (M4), where **every reading separates fact from interpretation and cites the original quote + replayable audio.** Two backends, pick one:
+Works without it: the UI, recording, search and annotations all run — only the AI readings show "not configured." Configure one to unlock on-demand readings (M4), where **every reading separates fact from interpretation and cites the original quote + replayable audio.**
+
+**Three ways to configure — pick the one that fits:**
+
+| Method | Best for | How |
+| --- | --- | --- |
+| **① In-app Settings page** (gear icon in the top/side bar) | Packaged app (`.exe`), zero env vars | Open the UI → click the gear icon → fill in provider / model / API key → Save. Written to `%LOCALAPPDATA%\Rapport\config.json` and takes effect immediately. |
+| **② Edit `%LOCALAPPDATA%\Rapport\config.json`** | Manual / scripted setup | Edit the JSON file directly; Rapport reads it on next launch. |
+| **③ Environment variables** | CLI, automation, highest priority | See below — these override `config.json`. |
+
+Priority: **environment variables > `config.json` > defaults.**
 
 **A. Local Ollama (recommended · fully local, no API key, data never leaves the device)**
 
 ```bash
 # 1) Install Ollama (https://ollama.com) and pull a chat model:
 ollama pull qwen2.5:7b-instruct        # any chat model works; size it to your machine
-# 2) Point Rapport at it (readings follow the UI language EN/中):
+# 2) Point Rapport at it via env vars (readings follow the UI language EN/中):
 # Windows PowerShell:
 $env:RAPPORT_LLM_PROVIDER="ollama"; $env:RAPPORT_LLM_MODEL="qwen2.5:7b-instruct"; rapport serve
 # macOS / Linux:
@@ -152,7 +162,7 @@ RAPPORT_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... RAPPORT_LLM_MODEL=cl
 | `RAPPORT_LLM_MODEL` | model name | e.g. `qwen2.5:7b-instruct` / `claude-opus-4-8` |
 | `ANTHROPIC_API_KEY` | your Anthropic key | only when `provider=anthropic` |
 
-> These env vars apply to both `rapport serve` and `rapport app`. `rapport app` currently reads config from the environment at launch (the double-click `.exe` has no built-in settings screen yet — see "Known gaps").
+> Env vars override `config.json` and apply to both `rapport serve` and `rapport app`.
 
 ### CLI utilities
 
@@ -173,8 +183,8 @@ RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU (needs CUDA ru
 
 ### Known limitations (M5 packaging, current state)
 
-- **The packaged app has no built-in settings screen yet**: the language model, microphone device, etc. are still configured via environment variables (above). A double-clicked `.exe` defaults to `provider=none` (no AI readings); to enable readings in the packaged app today, launch it from a shortcut / command that sets the env vars. **An in-app settings screen + config-file support are planned.**
-- **The tray app has no main window**: quit = right-click the tray icon → "Quit"; if you can't find the icon (collapsed under "^"), use `taskkill /F /IM Rapport.exe`.
+- **In-app settings page is live**: click the gear icon (top/side bar) to configure the language model provider, model name, and API key directly in the UI — no env vars needed. Settings persist to `%LOCALAPPDATA%\Rapport\config.json`. Environment variables still work and take priority over the config file.
+- **`rapport app` opens the UI automatically on launch**: your default browser opens `http://127.0.0.1:8000` at startup (pass `--no-open` to skip). Quit = right-click the tray icon → "Quit" (reliably terminates the process); if the icon is collapsed under "^", use `taskkill /F /IM Rapport.exe` as a fallback.
 - First transcription downloads a Whisper model (needs network); the binary isn't code-signed, so SmartScreen may prompt on first run.
 
 ## Roadmap
