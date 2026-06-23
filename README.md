@@ -118,8 +118,8 @@ rapport devices            # list microphones (record --device N to pick one)
 - [x] **M4** — On-demand AI readings ✅ *(pluggable LLM — local **Ollama**, no API key, or bring your own; every reading separates fact from interpretation and **cites the original quote + audio**)*
 - **M5** — Human-context layer for your AI *(in progress)*
   - [x] **MCP server** ✅ — built on the official Python MCP SDK (FastMCP), stdio transport; exposes 7 read-only structured tools (`list_people` / `search_people` / `get_person` / `get_conversation` / `list_conversations` / `relationship_graph` / `search_utterances`); pure data, zero AI, zero API key; reuses the existing local DB layer, no web server required; every returned utterance carries a replayable citation (utterance_id + conversation_id + timestamp)
-  - [ ] Windows `.exe` packaging — PyInstaller/NSIS, system-tray icon, recording indicator
-  - [ ] Always-on background recording — continuous capture, always running
+  - [x] **Always-on background recording** ✅ — `rapport watch` runs as a standalone daemon: continuously captures the microphone → splits on silence into utterances → transcribes → diarizes → stores; conversations are **bucketed by calendar day** (time-axis only, no semantic segmentation); audio is written to a rolling day-WAV with per-utterance byte offsets so every line is 🔊 replayable; `/api/status` honestly reflects recording/paused state (the frontend red dot is real); pause = capture fully stops (privacy-first — no hidden recording); all data stays on-device
+  - [ ] Windows `.exe` packaging — PyInstaller/NSIS, system-tray icon, persistent recording indicator
 - [ ] **M6** — Voiceprint ID · macOS
 
 ## License
