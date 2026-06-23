@@ -35,6 +35,11 @@ class Database:
         self._conn = sqlite3.connect(db_arg, check_same_thread=check_same_thread)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
+        if path != ":memory:":
+            # 文件库启用 WAL：常驻守护进程与 rapport serve 可能同时读写同一个库，
+            # WAL 让读写并发不互斥，避免 database is locked。:memory: 不支持 WAL，
+            # 故仅对文件库启用（PRAGMA 返回实际生效模式，内存库会回落不在此分支）。
+            self._conn.execute("PRAGMA journal_mode = WAL")
         self._init_schema()
 
     def _init_schema(self) -> None:
@@ -63,6 +68,36 @@ class Database:
         )
         self._conn.commit()
         return int(cur.lastrowid)
+
+    # 常驻记录每日容器的 note 标记前缀；按它精确识别「当天」conversation，
+    # 不与用户普通对话（即便 note 恰含日期数字）混淆。
+    DAILY_NOTE_PREFIX = "常驻记录 · "
+
+    def get_or_create_daily_conversation(
+        self, day_str: str, audio_path: str
+    ) -> int:
+        """取或建某个自然日的「常驻记录」conversation，返回其 id。
+
+        常驻 always-on 录音以「按自然日」分桶：每个本地日历日一个 conversation。
+        同一天多次调用（含守护进程重启）都续写同一个；不同天各自独立。
+        靠 note 精确标记 `常驻记录 · {day_str}` 识别，避免误命中普通对话。
+
+        Args:
+            day_str: 本地日期串（如 "2026-06-23"）。
+            audio_path: 该天 day-WAV 的路径（新建时写入；已存在不覆盖）。
+
+        Returns:
+            当天 conversation 的 id。
+        """
+        note = f"{self.DAILY_NOTE_PREFIX}{day_str}"
+        cur = self._conn.execute(
+            "SELECT id FROM conversation WHERE note = ? ORDER BY id LIMIT 1",
+            (note,),
+        )
+        row = cur.fetchone()
+        if row is not None:
+            return int(row["id"])
+        return self.add_conversation(audio_path=audio_path, note=note)
 
     # ---- 人 ------------------------------------------------------------
 

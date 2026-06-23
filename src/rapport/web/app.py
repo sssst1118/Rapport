@@ -283,6 +283,7 @@ def create_app(
     db: Database | None = None,
     db_path: str | Path | None = None,
     repo_root: str | Path | None = None,
+    status_path: str | Path | None = None,
 ) -> FastAPI:
     """构建并返回 FastAPI 应用。
 
@@ -297,6 +298,8 @@ def create_app(
             测试推荐用这种方式：先在测试线程用自己的 Database 把数据写进同一个
             文件，再把路径传进来，避免跨线程共享同一连接。
         repo_root: 解析 audio_path 与定位 frontend/dist 的基准目录；缺省取仓库根。
+        status_path: 录制状态文件路径（rapport watch 守护进程原子写、本端点读）；
+            缺省取 config.RECORDING_STATUS_PATH。
 
     Returns:
         配置好全部路由的 FastAPI 实例。
@@ -317,6 +320,13 @@ def create_app(
     root = Path(repo_root) if repo_root is not None else _REPO_ROOT
     dist_dir = root / "frontend" / "dist"
 
+    if status_path is not None:
+        _status_path = Path(status_path)
+    else:
+        from .. import config
+
+        _status_path = config.RECORDING_STATUS_PATH
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):  # pragma: no cover - 仅生命周期
         try:
@@ -333,8 +343,13 @@ def create_app(
 
     @app.get("/api/status")
     def get_status() -> dict[str, bool]:
-        """常驻采集尚未实现，诚实显示未录音。"""
-        return {"recording": False, "paused": False}
+        """读 rapport watch 守护进程写的录制状态文件，对外诚实暴露 {recording, paused}。
+
+        文件不存在/损坏一律诚实回未录音，绝不抛 500（read_status 内已兜底）。
+        """
+        from ..alwayson.status import read_status
+
+        return read_status(_status_path)
 
     # ---- 人物（事实） ---------------------------------------------------
 

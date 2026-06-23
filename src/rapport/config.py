@@ -68,6 +68,30 @@ DATA_DIR: Path = Path(_env("DATA_DIR", str(_REPO_ROOT / "data")))
 # SQLite 数据库路径：默认指向 DATA_DIR/rapport.db。
 DB_PATH: Path = Path(_env("DB_PATH", str(DATA_DIR / "rapport.db")))
 
+# ---- 常驻 always-on 后台录音（M5 任务二）配置 ----------------------------
+# 全部 RAPPORT_* env 可覆盖；纯逻辑（segmenter）从这里取默认，但也接受显式参数注入。
+
+# 录音音频与 day-WAV 的存放目录：默认 DATA_DIR/audio。
+AUDIO_DIR: Path = Path(_env("AUDIO_DIR", str(DATA_DIR / "audio")))
+
+# 录制状态文件：守护进程原子写、/api/status 读。默认 DATA_DIR/recording_status.json。
+RECORDING_STATUS_PATH: Path = Path(
+    _env("RECORDING_STATUS_PATH", str(DATA_DIR / "recording_status.json"))
+)
+
+# 静音持续多久（毫秒）就切一句。
+SILENCE_MS: int = int(_env("SILENCE_MS", "700"))
+
+# 单句最大时长（秒），到顶强切，防一句无限长。
+MAX_UTTERANCE_S: float = float(_env("MAX_UTTERANCE_S", "30"))
+
+# 单句最小时长（秒），不足则丢弃（纯静音/噪声段不入库）。
+MIN_UTTERANCE_S: float = float(_env("MIN_UTTERANCE_S", "1"))
+
+# 静音判定的 RMS 能量阈值（float32 幅度，归一化到 [-1,1]）。
+# 0.01 约等于 -40 dBFS：典型室内底噪在其下、正常说话在其上，是常用的语音活动门限。
+SILENCE_RMS_THRESHOLD: float = float(_env("SILENCE_RMS_THRESHOLD", "0.01"))
+
 
 def get_transcriber() -> Transcriber:
     """按 TRANSCRIBER 配置返回对应的转写器实现。

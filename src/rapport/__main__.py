@@ -7,6 +7,7 @@
     rapport ingest FILE [--note N]   转写+分离并入库。
     rapport show CONV_ID             打印某对话的全部话语。
     rapport search QUERY             全文检索话语。
+    rapport watch [--device D]       常驻后台录音：持续采集→切句→转写→入当天对话。
     rapport serve [--port 8000]      启动 FastAPI Web 后端。
     rapport mcp                      以 stdio 启动 MCP server（暴露只读数据工具给 AI 助手）。
 
@@ -131,6 +132,57 @@ def _cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_watch(args: argparse.Namespace) -> int:
+    """常驻 always-on 后台录音：持续采集麦克风→静音切句→转写→分离→入当天对话。
+
+    独立守护进程，录音独立于 web 服务是否在跑。按自然日分桶（每天一个 conversation
+    + 一个滚动 day-WAV），跨午夜自动滚动；同一天重启续写当天那个 conversation。
+    录制状态写状态文件，/api/status 读它（前端红点变真）。
+    Ctrl-C / SIGINT / SIGTERM 优雅停止：停采集、finalize 当天 day-WAV、清状态文件。
+    """
+    import signal
+    import threading
+
+    from . import config
+    from .alwayson.engine import Engine
+    from .alwayson.mic import MicAudioSource
+    from .diarize import get_diarizer
+    from .storage.db import Database
+
+    device = config._parse_device(args.device) if args.device else config.INPUT_DEVICE
+
+    # 守护进程独占一条 DB 连接，跑在主线程（音频源回调也投到主线程不成立——
+    # sounddevice 回调在它自己的线程里跑，故 DB 连接放宽跨线程检查）。
+    db = Database(config.DB_PATH, check_same_thread=False)
+    transcriber = config.get_transcriber()
+    diarizer = get_diarizer()
+    source = MicAudioSource(
+        samplerate=config.SAMPLE_RATE, channels=config.CHANNELS, device=device
+    )
+    engine = Engine(db, transcriber, diarizer, source)
+
+    stop_event = threading.Event()
+
+    def _handle_signal(signum, frame) -> None:  # noqa: ANN001
+        stop_event.set()
+
+    signal.signal(signal.SIGINT, _handle_signal)
+    try:
+        signal.signal(signal.SIGTERM, _handle_signal)
+    except (ValueError, AttributeError):  # 某些平台无 SIGTERM
+        pass
+
+    engine.start()
+    print("● 正在录音…（按 Ctrl-C 停止）", flush=True)  # 持续可见的录制提示
+    try:
+        stop_event.wait()
+    finally:
+        print("\n■ 停止录音，正在收尾…", flush=True)
+        engine.stop()
+        db.close()
+    return 0
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """启动 FastAPI Web 后端（uvicorn）。
 
@@ -214,6 +266,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p_search = subparsers.add_parser("search", help="全文检索话语")
     p_search.add_argument("query", help="检索词")
     p_search.set_defaults(func=_cmd_search)
+
+    p_watch = subparsers.add_parser(
+        "watch", help="常驻后台录音：持续采集→按静音切句→转写→入当天对话"
+    )
+    p_watch.add_argument(
+        "--device",
+        default=None,
+        help="输入设备索引或名称（默认配置/系统默认；见 rapport devices）",
+    )
+    p_watch.set_defaults(func=_cmd_watch)
 
     p_serve = subparsers.add_parser("serve", help="启动 FastAPI Web 后端")
     p_serve.add_argument("--port", type=int, default=8000, help="监听端口（默认 8000）")

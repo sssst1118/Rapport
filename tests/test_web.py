@@ -78,6 +78,30 @@ def test_状态诚实显示未录音(seeded) -> None:
     assert r.json() == {"recording": False, "paused": False}
 
 
+def test_状态读守护进程写的状态文件(tmp_path) -> None:
+    """/api/status 应读状态文件：守护进程写 recording=True → 端点变真。"""
+    from rapport.alwayson.status import write_status
+
+    status_path = tmp_path / "recording_status.json"
+    write_status(status_path, recording=True, paused=True)
+    app = create_app(db_path=tmp_path / "rapport.db", status_path=status_path)
+    client = TestClient(app)
+    r = client.get("/api/status")
+    assert r.status_code == 200
+    assert r.json() == {"recording": True, "paused": True}
+
+
+def test_状态文件缺失或损坏不报500(tmp_path) -> None:
+    """状态文件不存在/损坏时 /api/status 诚实回未录音、绝不抛 500。"""
+    status_path = tmp_path / "recording_status.json"
+    status_path.write_text("{ broken", encoding="utf-8")
+    app = create_app(db_path=tmp_path / "rapport.db", status_path=status_path)
+    client = TestClient(app)
+    r = client.get("/api/status")
+    assert r.status_code == 200
+    assert r.json() == {"recording": False, "paused": False}
+
+
 # ---- 人物 ----------------------------------------------------------------
 
 
