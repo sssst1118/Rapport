@@ -190,11 +190,14 @@ def run_app(
             db.close()
         except Exception:  # noqa: BLE001
             pass
-        # 保底强制终止：windowed 打包应用必须保证「退出」即死。即便 PortAudio/uvicorn
-        # 仍残留非守护线程（icon.run() 返回后它们可能让进程不退），os._exit(0) 直接结束
-        # 进程，用户点「退出」一定关得掉。必须放在上面所有清理之后——os._exit 跳过
-        # atexit / 缓冲刷新，此刻 DB、状态文件、serve 都已收尾，强杀是安全的。
-        import os
 
-        os._exit(0)
+    # 保底强制终止：windowed 打包应用必须保证「退出」即死。即便 PortAudio/uvicorn 仍残留
+    # 非守护线程（icon.run() 返回后它们可能让进程不退），os._exit(0) 直接结束进程，用户点
+    # 「退出」一定关得掉。**放在 try/finally 之外、只在正常退出路径触发**：若 icon.run() 抛
+    # 异常，会越过这里继续上抛到 launch.py 记进 crash.log（os._exit 在 finally 里会吞掉异常
+    # 并误报 exit 0，绝不能那样放）。此刻 DB/状态文件/serve 都已在 finally 收尾，os._exit
+    # 跳过 atexit/缓冲刷新也安全。
+    import os
+
+    os._exit(0)
     return 0  # 不可达（os._exit 已终止）；保留以满足类型签名 -> int
