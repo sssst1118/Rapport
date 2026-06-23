@@ -27,13 +27,16 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel
 
+from .._frozen import is_frozen, resource_root
 from ..analysis import AnalysisError, get_provider
 from ..analysis import analyze as _analyze
 from ..mcp.tools import build_graph
 from ..storage.db import Database
 
-# 仓库根：本文件位于 src/rapport/web/app.py，上溯四级父目录。
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+# 资源根：定位随包的 frontend/dist。开发态 = 仓库根（本文件上溯四级一致），
+# 冻结态 = sys._MEIPASS（PyInstaller 把 frontend/dist 解包于此）。统一由
+# _frozen.resource_root() 决定，避免打包后 parents[N] 失效。
+_REPO_ROOT = resource_root()
 
 _T = TypeVar("_T")
 
@@ -297,7 +300,9 @@ def create_app(
         db_path: 数据库文件路径；本模块在工作线程内开库，关闭时 close。
             测试推荐用这种方式：先在测试线程用自己的 Database 把数据写进同一个
             文件，再把路径传进来，避免跨线程共享同一连接。
-        repo_root: 解析 audio_path 与定位 frontend/dist 的基准目录；缺省取仓库根。
+        repo_root: 解析对话 audio_path（相对基准）的目录；缺省取资源根。
+            注意 frontend/dist 始终从资源根（冻结态 = bundle）取，不受此参数影响——
+            前端是只读随包资源，而 audio 是可写用户数据，两者在冻结态分属不同根。
         status_path: 录制状态文件路径（rapport watch 守护进程原子写、本端点读）；
             缺省取 config.RECORDING_STATUS_PATH。
 
@@ -318,7 +323,16 @@ def create_app(
     db = _DbProxy(dbthread)  # type: ignore[assignment]
 
     root = Path(repo_root) if repo_root is not None else _REPO_ROOT
-    dist_dir = root / "frontend" / "dist"
+    # frontend/dist 的基准：
+    # - 冻结态：始终从资源根（sys._MEIPASS 解包目录）取——前端是只读随包资源，
+    #   与 audio 的可写根（repo_root 参数所指）解耦。
+    # - 非冻结态：尊重显式传入的 repo_root（开发/测试可注入临时目录控制 dist 有无），
+    #   缺省回退资源根（= 仓库根）。
+    if is_frozen():
+        dist_base = resource_root()
+    else:
+        dist_base = root
+    dist_dir = dist_base / "frontend" / "dist"
 
     if status_path is not None:
         _status_path = Path(status_path)

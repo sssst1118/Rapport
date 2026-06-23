@@ -121,9 +121,12 @@ def run_app(
     Returns:
         进程退出码（正常 0）。
     """
+    from .._frozen import data_root
     from . import tray
 
-    repo_root = Path(__file__).resolve().parents[3]
+    # audio_path 的可写基准：冻结态 = %LOCALAPPDATA%\Rapport（与 config.AUDIO_DIR/
+    # DB 同根），开发态 = 仓库根。前端 dist 由 create_app 自行从资源根取，不受此影响。
+    repo_root = data_root()
     url = f"http://{host}:{port}"
 
     # 1) 后台起 uvicorn serve（与 rapport serve 同款 app）。

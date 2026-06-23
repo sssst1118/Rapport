@@ -96,3 +96,60 @@ def test_输入设备_名字保留为字符串(monkeypatch: pytest.MonkeyPatch) 
     finally:
         monkeypatch.delenv("RAPPORT_INPUT_DEVICE", raising=False)
         importlib.reload(config)
+
+
+# ---- 冻结态（PyInstaller 打包后）路径解析 --------------------------------
+
+
+def test_开发态数据目录在仓库下data(干净环境) -> None:
+    """非冻结（开发）态：DATA_DIR 默认落在仓库根下 data/，行为不变。"""
+    cfg = 干净环境
+    assert cfg.DATA_DIR.name == "data"
+    # DB / 音频 / 状态文件都挂在 DATA_DIR 之下。
+    assert cfg.DB_PATH.parent == cfg.DATA_DIR
+    assert cfg.AUDIO_DIR.parent == cfg.DATA_DIR
+    assert cfg.RECORDING_STATUS_PATH.parent == cfg.DATA_DIR
+
+
+def test_冻结态数据目录落到LOCALAPPDATA(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """冻结态：DATA_DIR 默认落到 %LOCALAPPDATA%\\Rapport（用户级可写目录）。
+
+    打包装到 Program Files 后目录只读，DB/day-WAV/状态文件必须写用户目录。
+    用 monkeypatch 伪造 sys.frozen + sys._MEIPASS + LOCALAPPDATA 验证分支。
+    """
+    import sys
+
+    # 清掉显式 DATA_DIR 覆盖，确保走默认分支。
+    for key in list(__import__("os").environ):
+        if key.startswith("RAPPORT_"):
+            monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path / "bundle"), raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData"))
+    try:
+        cfg = importlib.reload(config)
+        assert cfg.DATA_DIR == tmp_path / "AppData" / "Rapport"
+        assert cfg.DB_PATH == cfg.DATA_DIR / "rapport.db"
+        assert cfg.AUDIO_DIR == cfg.DATA_DIR / "audio"
+    finally:
+        importlib.reload(config)
+
+
+def test_冻结态环境变量仍可覆盖数据目录(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """即便冻结态，RAPPORT_DATA_DIR 显式覆盖仍优先于 LOCALAPPDATA 默认。"""
+    import sys
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path / "bundle"), raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData"))
+    monkeypatch.setenv("RAPPORT_DATA_DIR", str(tmp_path / "custom"))
+    try:
+        cfg = importlib.reload(config)
+        assert cfg.DATA_DIR == tmp_path / "custom"
+    finally:
+        monkeypatch.delenv("RAPPORT_DATA_DIR", raising=False)
+        importlib.reload(config)

@@ -5,10 +5,26 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from .._frozen import is_frozen, resource_root
 from ..transcribe.base import Segment
 
-# schema.sql 与本文件同目录，打包后随包分发。
-_SCHEMA_PATH = Path(__file__).parent / "schema.sql"
+
+def _schema_path() -> Path:
+    """定位 schema.sql。
+
+    开发态与本文件同目录；冻结态（PyInstaller）从资源根的约定路径
+    `rapport/storage/schema.sql` 取（spec 的 datas 把它打到该路径）。冻结态找不到
+    时退回与 __file__ 同目录（某些打包布局源文件旁也有），保证两态都能起。
+    """
+    if is_frozen():
+        bundled = resource_root() / "rapport" / "storage" / "schema.sql"
+        if bundled.is_file():
+            return bundled
+    return Path(__file__).parent / "schema.sql"
+
+
+# schema.sql 路径在调用时解析（兼顾开发态与冻结态），不在导入期固化。
+_SCHEMA_PATH = _schema_path()
 
 
 class Database:
@@ -32,6 +48,12 @@ class Database:
         """
         self.path = path
         db_arg = path if path == ":memory:" else str(path)
+        if path != ":memory:":
+            # 确保父目录存在再开库：sqlite3.connect 不会自动建缺失的目录，会直接
+            # 抛 OperationalError("unable to open database file")。冻结态（打包后）
+            # 数据落 %LOCALAPPDATA%\Rapport，该目录首次运行尚不存在，必须先建。
+            # 开发态目录通常已存在，mkdir(exist_ok=True) 是幂等无副作用的 no-op。
+            Path(db_arg).parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(db_arg, check_same_thread=check_same_thread)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")

@@ -60,10 +60,13 @@ LLM_MODEL: str = _env("LLM_MODEL", "claude-opus-4-8")
 OLLAMA_MODEL: str = _env("OLLAMA_MODEL", "qwen2.5:7b-instruct-q4_K_M")
 OLLAMA_HOST: str = _env("OLLAMA_HOST", "http://localhost:11434")
 
-# 数据目录：默认指向仓库下 data/。
-# 本文件位于 src/rapport/config.py，仓库根为其上溯三级父目录。
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR: Path = Path(_env("DATA_DIR", str(_REPO_ROOT / "data")))
+# 数据目录：开发态默认仓库下 data/；冻结态（PyInstaller 打包后）落到用户级可写目录
+# `%LOCALAPPDATA%\Rapport`——装到 Program Files 后目录只读，DB / day-WAV / 状态文件
+# 都必须写到用户可写处。基准由 _frozen.data_root() 按冻结标志选取。
+# RAPPORT_DATA_DIR 环境变量仍优先覆盖（两态通用）。
+from ._frozen import data_root as _data_root
+
+DATA_DIR: Path = Path(_env("DATA_DIR", str(_data_root())))
 
 # SQLite 数据库路径：默认指向 DATA_DIR/rapport.db。
 DB_PATH: Path = Path(_env("DB_PATH", str(DATA_DIR / "rapport.db")))
