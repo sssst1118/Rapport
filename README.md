@@ -116,10 +116,10 @@ rapport devices            # list microphones (record --device N to pick one)
 - [ ] **Always-on capture** — continuous background recording (the real record, not just manual clips)
 - [x] **M3** — People-centric desktop app + annotations ✅ *(FastAPI + React, bilingual EN/中: Today · conversation · people · relationship graph · review)*
 - [x] **M4** — On-demand AI readings ✅ *(pluggable LLM — local **Ollama**, no API key, or bring your own; every reading separates fact from interpretation and **cites the original quote + audio**)*
-- **M5** — Human-context layer for your AI *(in progress)*
+- [x] **M5** — Human-context layer for your AI ✅
   - [x] **MCP server** ✅ — built on the official Python MCP SDK (FastMCP), stdio transport; exposes 7 read-only structured tools (`list_people` / `search_people` / `get_person` / `get_conversation` / `list_conversations` / `relationship_graph` / `search_utterances`); pure data, zero AI, zero API key; reuses the existing local DB layer, no web server required; every returned utterance carries a replayable citation (utterance_id + conversation_id + timestamp)
   - [x] **Always-on background recording** ✅ — `rapport watch` runs as a standalone daemon: continuously captures the microphone → splits on silence into utterances → transcribes → diarizes → stores; conversations are **bucketed by calendar day** (time-axis only, no semantic segmentation); audio is written to a rolling day-WAV with per-utterance byte offsets so every line is 🔊 replayable; `/api/status` honestly reflects recording/paused state (the frontend red dot is real); pause = capture fully stops (privacy-first — no hidden recording); all data stays on-device
-  - [ ] Windows `.exe` packaging — PyInstaller/NSIS, system-tray icon, persistent recording indicator
+  - [x] **Windows `.exe` packaging** ✅ — PyInstaller onedir build + NSIS installer (`RapportSetup.exe`); system-tray resident app (tray menu: start/pause recording, open UI, quit; icon color = always-visible recording indicator); single process orchestrates the local web UI (serve) + always-on recording Engine; frozen-mode user data lands in `%LOCALAPPDATA%\Rapport`; optional launch-at-startup (unchecked by default — privacy-respecting); uninstall preserves user data. *Note: Whisper model not bundled — first transcription downloads it on demand; binary not code-signed — SmartScreen may prompt on first run.*
 - [ ] **M6** — Voiceprint ID · macOS
 
 ## License

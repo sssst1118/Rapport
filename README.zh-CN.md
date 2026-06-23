@@ -116,10 +116,10 @@ rapport devices            # 列出麦克风（record --device N 选设备）
 - [ ] **常驻采集** —— 持续后台录音（真实记录，而不只是手动片段）
 - [x] **M3** —— 以人为中心的桌面应用 + 标注 ✅ *（FastAPI + React，中英双语：今日 · 对话 · 人物 · 关系图 · 复盘）*
 - [x] **M4** —— 按需 AI 解读 ✅ *（可插拔大模型——本地 **Ollama**，零 API key，或自带 key；每条解读都事实与解读分离、**挂原话出处 + 可回放原声**）*
-- **M5** —— 做你 AI 的「人际上下文层」*（进行中）*
+- [x] **M5** —— 做你 AI 的「人际上下文层」✅
   - [x] **MCP server** ✅ —— 基于官方 Python MCP SDK（FastMCP）、stdio transport；对外暴露 7 个只读结构化工具（`list_people` / `search_people` / `get_person` / `get_conversation` / `list_conversations` / `relationship_graph` / `search_utterances`）；纯数据、零 AI、零 API key；复用现有本地 DB 层、不依赖 web 服务器；每条返回话语都带可回放出处（utterance_id + conversation_id + 时间戳）
   - [x] **常驻 always-on 后台录音** ✅ —— `rapport watch` 作为独立守护进程运行：持续采集麦克风 → 按静音切句（utterance）→ 转写 → 说话人分离 → 入库；**按自然日分桶成对话**（纯时间轴组织，不做语义对话切分）；音频写滚动 day-WAV、每句带 day-WAV 内字节偏移以保 🔊 可回放；`/api/status` 诚实反映录制/暂停状态（前端红点变真）；暂停 = 完全停止采集（隐私优先、绝不隐蔽采集）；数据全程本地
-  - [ ] Windows `.exe` 打包 —— PyInstaller/NSIS + 系统托盘 + 持续可见录制指示
+  - [x] **Windows `.exe` 打包** ✅ —— PyInstaller onedir 产物 + NSIS 安装器（`RapportSetup.exe`）；系统托盘常驻应用（托盘菜单：开始/暂停录音、打开界面、退出；图标颜色 = 持续可见的录制指示）；单进程内编排本地 web 界面（serve）+ 常驻录音 Engine；冻结态用户数据落 `%LOCALAPPDATA%\Rapport`；可选开机自启（默认不勾，尊重隐私）；卸载保留用户数据。*注：未打包 whisper 模型，首次转写需联网下载；未代码签名，首次运行 SmartScreen 可能提示。*
 - [ ] **M6** —— 声纹识别 · macOS
 
 ## 许可证
