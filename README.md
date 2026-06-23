@@ -75,39 +75,107 @@ Others built memory search for your *digital* life. **Rapport is the understandi
 
 ## Tech stack
 
-Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · React (Vite) SPA → PyWebview desktop shell. **Windows first, macOS later.**
+Python · `faster-whisper` (local ASR) · `pyannote` (speaker diarization) · SQLite + FTS5 · pluggable LLM (local **Ollama** or your own API key) · FastAPI + MCP · React (Vite) SPA + system-tray desktop app (pystray, `rapport app`). **Windows first, macOS later.**
 
 ## Quick start
 
-> **Python 3.10+** (3.12 recommended for the widest prebuilt-wheel coverage). Runs on **CPU by default — no GPU or CUDA required.**
+> **Prerequisites:** Python 3.10+ (3.12 recommended) · **Node.js 20+** (to build the web UI). Runs on **CPU by default — no GPU or CUDA required.** Windows first (macOS later).
+>
+> Windows users who just want to try it without setting up a toolchain can grab the packaged `RapportSetup.exe` installer (Start-menu + system tray; no Python / Node needed). To run from source, follow below.
+
+### 1. Install
 
 ```bash
 git clone https://github.com/sssst1118/Rapport.git
 cd Rapport
+
 python -m venv .venv
 # Windows:        .venv\Scripts\activate
 # macOS / Linux:  source .venv/bin/activate
-pip install -e .            # or:  uv pip install -e .
+pip install -e .                       # or:  uv pip install -e .
 
-rapport transcribe path/to/audio.wav    # transcribe an audio file
-rapport ui                              # or launch the web UI
+# Build the web UI (serve / app both serve it — don't skip, or the UI is blank)
+npm --prefix frontend install
+npm --prefix frontend run build
 ```
 
-First run downloads a small Whisper model. Choose a model size or enable GPU via env vars:
+### 2. Pick how to run it
+
+```bash
+rapport app        # [recommended, full experience] system-tray resident: local UI + continuous background recording, all in one
+rapport serve      # web UI only → open http://127.0.0.1:8000
+rapport watch      # background always-on recording daemon only (no window)
+rapport mcp        # MCP server — expose your local data to Claude Desktop / Cursor (stdio)
+```
+
+> `rapport app` starts recording on launch (red tray dot = recording); use `rapport app --no-record` to start idle. It's a tray app with **no main window** — right-click the tray icon to pause / open the UI / quit.
+
+### 3. Want to see it first? Load demo data (no microphone needed)
+
+```bash
+python seed_demo.py                                  # writes data/demo.db (leaves your rapport.db alone)
+# Windows PowerShell:
+$env:RAPPORT_DB_PATH="data/demo.db"; rapport serve
+# macOS / Linux:
+RAPPORT_DB_PATH=data/demo.db rapport serve
+```
+
+### 4. Configure the language model (enable AI readings · optional)
+
+Works without it: the UI, recording, search and annotations all run — only the AI readings show "not configured." Configure one to unlock on-demand readings (M4), where **every reading separates fact from interpretation and cites the original quote + replayable audio.** Two backends, pick one:
+
+**A. Local Ollama (recommended · fully local, no API key, data never leaves the device)**
+
+```bash
+# 1) Install Ollama (https://ollama.com) and pull a chat model:
+ollama pull qwen2.5:7b-instruct        # any chat model works; size it to your machine
+# 2) Point Rapport at it (readings follow the UI language EN/中):
+# Windows PowerShell:
+$env:RAPPORT_LLM_PROVIDER="ollama"; $env:RAPPORT_LLM_MODEL="qwen2.5:7b-instruct"; rapport serve
+# macOS / Linux:
+RAPPORT_LLM_PROVIDER=ollama RAPPORT_LLM_MODEL=qwen2.5:7b-instruct rapport serve
+```
+
+**B. Bring your own API key (Anthropic)**
+
+```bash
+pip install -e ".[anthropic]"          # install the optional dependency
+# Windows PowerShell:
+$env:RAPPORT_LLM_PROVIDER="anthropic"; $env:ANTHROPIC_API_KEY="sk-ant-..."; $env:RAPPORT_LLM_MODEL="claude-opus-4-8"; rapport serve
+# macOS / Linux:
+RAPPORT_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... RAPPORT_LLM_MODEL=claude-opus-4-8 rapport serve
+```
+
+| Env var | Purpose | Values |
+| --- | --- | --- |
+| `RAPPORT_LLM_PROVIDER` | choose the LLM backend | `none` (default, no readings) · `ollama` · `anthropic` |
+| `RAPPORT_LLM_MODEL` | model name | e.g. `qwen2.5:7b-instruct` / `claude-opus-4-8` |
+| `ANTHROPIC_API_KEY` | your Anthropic key | only when `provider=anthropic` |
+
+> These env vars apply to both `rapport serve` and `rapport app`. `rapport app` currently reads config from the environment at launch (the double-click `.exe` has no built-in settings screen yet — see "Known gaps").
+
+### CLI utilities
+
+```bash
+rapport transcribe path/to/audio.wav    # transcribe an audio file
+rapport ingest audio.wav                # transcribe → store as a conversation
+rapport show 1                          # print a conversation's lines
+rapport search "project"                # full-text search across everything
+rapport devices                         # list microphones (record --device N to pick one)
+```
+
+First transcription downloads a small Whisper model. Choose a model size or enable GPU via env vars:
 
 ```bash
 RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small | medium | large-v3
 RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU (needs CUDA runtime libs)
 ```
 
-Store a recording in your local database, then browse and search it:
+### Known limitations (M5 packaging, current state)
 
-```bash
-rapport ingest audio.wav   # transcribe → store as a conversation
-rapport show 1             # print a conversation's lines
-rapport search "project"   # full-text search across everything
-rapport devices            # list microphones (record --device N to pick one)
-```
+- **The packaged app has no built-in settings screen yet**: the language model, microphone device, etc. are still configured via environment variables (above). A double-clicked `.exe` defaults to `provider=none` (no AI readings); to enable readings in the packaged app today, launch it from a shortcut / command that sets the env vars. **An in-app settings screen + config-file support are planned.**
+- **The tray app has no main window**: quit = right-click the tray icon → "Quit"; if you can't find the icon (collapsed under "^"), use `taskkill /F /IM Rapport.exe`.
+- First transcription downloads a Whisper model (needs network); the binary isn't code-signed, so SmartScreen may prompt on first run.
 
 ## Roadmap
 
