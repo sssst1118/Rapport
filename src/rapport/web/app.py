@@ -567,7 +567,7 @@ def create_app(
         构图逻辑下沉到 rapport.mcp.tools.build_graph，与 MCP relationship_graph 工具共享
         （build_graph 只调用只读方法，经 _DbProxy 照样可用），避免 web 与 mcp 两处重复。
         """
-        return build_graph(db)  # type: ignore[arg-type]
+        return build_graph(db)
 
     # ---- 解读：复盘（M4 占位） ------------------------------------------
 

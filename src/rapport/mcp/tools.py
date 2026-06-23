@@ -13,15 +13,36 @@ from __future__ import annotations
 
 import sqlite3
 from itertools import combinations
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from ..storage.db import Database
+
+
+@runtime_checkable
+class GraphDataSource(Protocol):
+    """build_graph（及其内部 _person_counts）所需的最小只读接口。
+
+    Database 与 _DbProxy 都天然满足此协议（鸭子类型），无需显式继承。
+    引入 Protocol 的目的：让 web 层调 build_graph(db) 时不需要 type: ignore。
+    """
+
+    def list_persons(self) -> list[sqlite3.Row]: ...
+
+    def list_conversations(self) -> list[sqlite3.Row]: ...
+
+    def get_persons_in_conversation(
+        self, conversation_id: int
+    ) -> list[sqlite3.Row]: ...
+
+    def get_utterances_for_person(
+        self, person_id: int
+    ) -> list[sqlite3.Row]: ...
 
 
 # ---- 共享小工具 ----------------------------------------------------------
 
 
-def _person_counts(db: Database, person_id: int) -> tuple[int, int]:
+def _person_counts(db: GraphDataSource, person_id: int) -> tuple[int, int]:
     """某人的 (话语数, 涉及对话数)，由现有只读方法推导。"""
     utts = db.get_utterances_for_person(person_id)
     conv_ids = {u["conversation_id"] for u in utts}
@@ -62,11 +83,14 @@ def _participant(row: sqlite3.Row) -> dict[str, Any]:
 # ---- 关系图：可被 web 与 mcp 共享的纯构图函数 ----------------------------
 
 
-def build_graph(db: Database) -> dict[str, Any]:
+def build_graph(db: GraphDataSource) -> dict[str, Any]:
     """关系网络：节点=人物（带话语数/对话数），连线=同段对话共同在场 → 推断彼此认识。
 
     连线权重 = 两人共同在场的对话数。这是从真实记录里「白捡」的关系，属事实层，
     不是模型脑补。web 层 /api/graph 与 mcp relationship_graph 共用本函数，避免两处重复。
+
+    参数类型用 GraphDataSource Protocol 而非具体 Database，使 web 层传入
+    _DbProxy 时无需 type: ignore（两者都满足该协议的鸭子类型约束）。
     """
     nodes = []
     for p in db.list_persons():

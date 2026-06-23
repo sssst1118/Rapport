@@ -18,15 +18,21 @@ class Database:
     默认使用内存库（:memory:），也可传入文件路径做持久化。
     """
 
-    def __init__(self, path: str | Path = ":memory:") -> None:
+    def __init__(
+        self,
+        path: str | Path = ":memory:",
+        check_same_thread: bool = True,
+    ) -> None:
         """打开（或新建）数据库并建好全部表。
 
         Args:
             path: 数据库文件路径；":memory:" 表示内存库。
+            check_same_thread: 传给 sqlite3.connect 的同名参数（默认 True）。
+                MCP server 等在单一事件循环线程上使用时可传 False 作冗余保险。
         """
         self.path = path
         db_arg = path if path == ":memory:" else str(path)
-        self._conn = sqlite3.connect(db_arg)
+        self._conn = sqlite3.connect(db_arg, check_same_thread=check_same_thread)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
         self._init_schema()
