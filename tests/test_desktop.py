@@ -126,11 +126,12 @@ def test_toggle_pause_when_paused_calls_resume() -> None:
     assert ctrl.icon_state() == "recording"
 
 
-def test_toggle_pause_when_idle_is_noop() -> None:
-    """未录音时切换暂停不应误调 pause/resume。"""
+def test_toggle_when_idle_starts_recording() -> None:
+    """未录音时（如 --no-record 启动）切换应开始录音（idle→start），托盘可一键启动采集。"""
     ctrl, rec, _, _ = _make(recording=False, paused=False)
     ctrl.on_toggle_pause()
-    assert rec.calls == []
+    assert rec.calls == ["start"]
+    assert ctrl.icon_state() == "recording"
 
 
 # ---- on_open_ui ----------------------------------------------------------
@@ -188,6 +189,11 @@ def test_menu_toggle_label_when_recording_says_pause() -> None:
 def test_menu_toggle_label_when_paused_says_resume() -> None:
     ctrl, _, _, _ = _make(recording=True, paused=True)
     assert _toggle_label(ctrl) == "继续录音"
+
+
+def test_menu_toggle_label_when_idle_says_start() -> None:
+    ctrl, _, _, _ = _make(recording=False, paused=False)
+    assert _toggle_label(ctrl) == "开始录音"
 
 
 def test_menu_has_open_and_quit_items() -> None:

@@ -87,10 +87,14 @@ class AppController:
     # ---- 菜单动作 ------------------------------------------------------
 
     def on_toggle_pause(self) -> None:
-        """暂停/继续录音：recording→pause()，paused→resume()。未录音时为空操作。"""
+        """切换录音状态：未录音→start()，录音中→pause()，已暂停→resume()。
+
+        让托盘从空闲态（如 --no-record 启动、或 stop 之后）也能一键开始采集，
+        而不只是在「录音中」与「暂停」之间切。
+        """
         if not self._recorder.recording:
-            return
-        if self._recorder.paused:
+            self._recorder.start()
+        elif self._recorder.paused:
             self._recorder.resume()
         else:
             self._recorder.pause()
@@ -121,8 +125,13 @@ class AppController:
     # ---- 菜单描述（供 tray.py 构造真实 pystray.Menu） ------------------
 
     def _toggle_label(self) -> str:
-        """toggle 项的当前文案：暂停中显示「继续录音」，否则「暂停录音」。"""
-        return "继续录音" if self.icon_state() == "paused" else "暂停录音"
+        """toggle 项的当前文案：录音中→「暂停录音」，已暂停→「继续录音」，空闲→「开始录音」。"""
+        state = self.icon_state()
+        if state == "recording":
+            return "暂停录音"
+        if state == "paused":
+            return "继续录音"
+        return "开始录音"
 
     def menu_items(self) -> list[dict[str, Any]]:
         """结构化菜单描述（label + 动作键），便于 tray 构造真实菜单、也便于单测文案。
