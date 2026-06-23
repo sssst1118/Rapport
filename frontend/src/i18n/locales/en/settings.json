@@ -1,0 +1,34 @@
+{
+  "title": "Settings",
+  "description": "Configure the language model used for readings — right here, no environment variables or config files needed.",
+  "section": {
+    "llm": "Language model",
+    "llmHint": "It powers the reading layer (conversation recaps, people analysis, reviews). Leave it off to keep only the factual record, with no readings."
+  },
+  "provider": {
+    "label": "Provider",
+    "none": "Off (record only, no readings)",
+    "ollama": "Local Ollama",
+    "anthropic": "Anthropic (bring your own API key)"
+  },
+  "model": {
+    "label": "Model name",
+    "placeholder": {
+      "none": "Pick a provider first",
+      "ollama": "qwen2.5:7b-instruct",
+      "anthropic": "claude-opus-4-8"
+    }
+  },
+  "apiKey": {
+    "label": "Anthropic API key",
+    "placeholderSet": "Already set (leave blank to keep it)",
+    "placeholderUnset": "sk-ant-…",
+    "hint": "Stored only on this machine, in plain text in config.json; sent over local loopback."
+  },
+  "envOverride": "Overridden by an environment variable; changes here won't take effect.",
+  "save": "Save",
+  "saving": "Saving…",
+  "saved": "Saved. It takes effect on your next reading.",
+  "failed": "Couldn't save. Please try again in a moment.",
+  "loadError": "Couldn't load settings."
+}

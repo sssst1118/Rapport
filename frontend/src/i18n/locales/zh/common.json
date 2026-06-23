@@ -1,6 +1,6 @@
 {
   "brand": { "tagline": "记录与旁批" },
-  "nav": { "today": "今日", "people": "人物", "graph": "关系图", "styleguide": "样式手册", "home": "Rapport 首页", "main": "主导航" },
+  "nav": { "today": "今日", "people": "人物", "graph": "关系图", "settings": "设置", "styleguide": "样式手册", "home": "Rapport 首页", "main": "主导航" },
   "lang": { "label": "语言" },
   "recording": {
     "live": "正在录音",

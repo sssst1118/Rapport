@@ -15,13 +15,14 @@ app 工厂签名：create_app(db=None, db_path=None, repo_root=None)
 
 from __future__ import annotations
 
+import os
 import sqlite3
 import threading
 from concurrent.futures import Future
 from contextlib import asynccontextmanager
 from pathlib import Path
 from queue import Queue
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Literal, TypeVar
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
@@ -194,6 +195,20 @@ class ReviewBody(BaseModel):
     id: int | None = None
 
 
+class SettingsUpdate(BaseModel):
+    """设置页保存请求体（写语言模型配置到 config.json）。
+
+    - llm_provider 用 Literal 限定三选一：坏值由 pydantic 直接挡成 422，端点逻辑
+      不必再校验、也就绝不 500。
+    - anthropic_api_key 用「缺省 vs 空串」双态表达「不动已存 key」：省略字段（None）
+      或空串都视作不修改，只有非空才写入（见端点）。
+    """
+
+    llm_provider: Literal["none", "ollama", "anthropic"] | None = None
+    llm_model: str | None = None
+    anthropic_api_key: str | None = None
+
+
 # ---- 解读信封（M4） -----------------------------------------------------
 #
 # 统一 Interpretation 信封（前端已冻结该类型）三态：
@@ -280,6 +295,38 @@ def _speakers_in(db: Database, conversation_id: int) -> list[str]:
         if label and label not in seen:
             seen.append(label)
     return seen
+
+
+# ---- 设置（M5.5 Task 3）：读写语言模型配置 -------------------------------
+#
+# 哪些项可被环境变量覆盖（覆盖时改 config.json/UI 不生效，需提示用户）。键名与
+# GET /api/settings 回显的字段名一致，便于前端逐项标注。provider/model 走 RAPPORT_
+# 前缀；anthropic key 沿用 anthropic SDK 约定的裸 ANTHROPIC_API_KEY（无前缀）。
+_SETTINGS_ENV: dict[str, str] = {
+    "llm_provider": "RAPPORT_LLM_PROVIDER",
+    "llm_model": "RAPPORT_LLM_MODEL",
+    "anthropic_api_key": "ANTHROPIC_API_KEY",
+}
+
+
+def _settings_payload() -> dict[str, Any]:
+    """构造 GET /api/settings 的回显：当前有效设置 + has_api_key + env_overrides。
+
+    每次新鲜读取（config 各项调用时解析），故设置写完即时反映。**绝不回显 key 明文**：
+    只暴露 has_api_key 布尔。env_overrides 列出被环境变量盖住的项（这些改文件/UI 不
+    生效，前端据此提示）。
+    """
+    from .. import config
+
+    overrides = [
+        key for key, env in _SETTINGS_ENV.items() if env in os.environ
+    ]
+    return {
+        "llm_provider": config.LLM_PROVIDER,
+        "llm_model": config.LLM_MODEL,
+        "has_api_key": config.anthropic_api_key() is not None,
+        "env_overrides": overrides,
+    }
 
 
 def create_app(
@@ -607,6 +654,40 @@ def create_app(
         事实回放（第①步）由前端复用对话/话语真数据呈现，无需此端点。
         """
         return _interpret(db, _analyze.review, body.scope, body.id, lang=lang)
+
+    # ---- 设置：读写语言模型配置（M5.5 Task 3） --------------------------
+
+    @app.get("/api/settings")
+    def get_settings() -> dict[str, Any]:
+        """回显当前有效的语言模型设置，供设置页填表。
+
+        含 has_api_key 布尔（**绝不回显 key 明文**）与 env_overrides（被环境变量
+        覆盖、改文件不生效的项）。每次新鲜读取，写完即时反映。
+        """
+        return _settings_payload()
+
+    @app.post("/api/settings")
+    def save_settings(body: SettingsUpdate) -> dict[str, Any]:
+        """把设置持久化到 config.json，返回与 GET 同款的回显结构。
+
+        - 只写显式传入的字段（None 表示不动该项），保留 config.json 其余键。
+        - **API key**：缺省或空串 → 不动已存 key（避免把已设的 key 抹成空）；非空 →
+          写入。坏 provider 已由 pydantic Literal 挡成 422，到这里的输入都合法，
+          故绝不 500。
+        """
+        from .. import config
+
+        updates: dict[str, Any] = {}
+        if body.llm_provider is not None:
+            updates["llm_provider"] = body.llm_provider
+        if body.llm_model is not None:
+            updates["llm_model"] = body.llm_model
+        # 仅当传入非空 key 才写；空串/缺省都不覆盖已存 key
+        if body.anthropic_api_key:
+            updates["anthropic_api_key"] = body.anthropic_api_key
+        if updates:
+            config.save_config(updates)
+        return _settings_payload()
 
     # ---- 静态托管（SPA，history fallback） ------------------------------
 

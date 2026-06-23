@@ -50,3 +50,13 @@ export function GraphIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+/** 设置：齿轮 */
+export function SettingsIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v3M12 18.5v3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M2.5 12h3M18.5 12h3M5.1 18.9l2.1-2.1M16.8 7.2l2.1-2.1" />
+    </svg>
+  )
+}

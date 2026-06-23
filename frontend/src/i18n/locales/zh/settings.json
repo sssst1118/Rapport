@@ -1,0 +1,34 @@
+{
+  "title": "设置",
+  "description": "配置用于解读的语言模型 —— 改这里即可，不必碰环境变量或配置文件。",
+  "section": {
+    "llm": "语言模型",
+    "llmHint": "解读层（对话小结、人物分析、复盘）由它生成；不配则只保留事实记录、不做解读。"
+  },
+  "provider": {
+    "label": "后端",
+    "none": "不启用（仅记录，不解读）",
+    "ollama": "本地 Ollama",
+    "anthropic": "Anthropic（自带 API Key）"
+  },
+  "model": {
+    "label": "模型名",
+    "placeholder": {
+      "none": "启用后端后再填",
+      "ollama": "qwen2.5:7b-instruct",
+      "anthropic": "claude-opus-4-8"
+    }
+  },
+  "apiKey": {
+    "label": "Anthropic API Key",
+    "placeholderSet": "已设置（留空则不修改）",
+    "placeholderUnset": "sk-ant-…",
+    "hint": "仅存在本机、明文写入 config.json；经本地回环传输。"
+  },
+  "envOverride": "当前被环境变量覆盖，改这里不生效。",
+  "save": "保存",
+  "saving": "正在保存…",
+  "saved": "已保存，下次解读即生效。",
+  "failed": "保存失败，请稍后再试。",
+  "loadError": "读取设置失败。"
+}

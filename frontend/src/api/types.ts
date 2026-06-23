@@ -170,3 +170,31 @@ export interface GraphData {
 
 /** 复盘范围：一段对话 / 一个人 / 某一天 */
 export type ReviewScope = 'conversation' | 'person' | 'day'
+
+/** 语言模型后端 */
+export type LlmProvider = 'none' | 'ollama' | 'anthropic'
+
+/**
+ * GET /api/settings —— 当前有效的语言模型设置（供设置页回显）。
+ * 安全：绝不含 key 明文，只有 has_api_key 布尔。
+ */
+export interface Settings {
+  /** 当前有效后端（env > config.json > 默认） */
+  llm_provider: LlmProvider
+  /** 当前有效模型名 */
+  llm_model: string
+  /** anthropic key 是否已配置（明文绝不下发） */
+  has_api_key: boolean
+  /** 被环境变量覆盖的项（改文件/界面不生效，需提示用户）。值取本对象的字段名。 */
+  env_overrides: string[]
+}
+
+/**
+ * POST /api/settings 请求体。
+ * anthropic_api_key：留空 / 省略表示「不修改已存的 key」；非空才写入。
+ */
+export interface SettingsUpdate {
+  llm_provider?: LlmProvider
+  llm_model?: string
+  anthropic_api_key?: string
+}

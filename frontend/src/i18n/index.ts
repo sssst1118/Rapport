@@ -25,6 +25,8 @@ import enGraph from './locales/en/graph.json'
 import zhGraph from './locales/zh/graph.json'
 import enReview from './locales/en/review.json'
 import zhReview from './locales/zh/review.json'
+import enSettings from './locales/en/settings.json'
+import zhSettings from './locales/zh/settings.json'
 
 /** 全部命名空间（新增页面区时在此登记）。 */
 export const NAMESPACES = [
@@ -34,6 +36,7 @@ export const NAMESPACES = [
   'people',
   'graph',
   'review',
+  'settings',
 ] as const
 
 /** 支持的语言。新增语言：加一套 locales/<lang>/*.json 并在此登记。 */
@@ -48,6 +51,7 @@ const resources = {
     people: enPeople,
     graph: enGraph,
     review: enReview,
+    settings: enSettings,
   },
   zh: {
     common: zhCommon,
@@ -56,6 +60,7 @@ const resources = {
     people: zhPeople,
     graph: zhGraph,
     review: zhReview,
+    settings: zhSettings,
   },
 }
 

@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { WaveformMark } from './WaveformMark'
 import { RecordingStatus } from './RecordingStatus'
 import { LanguageSwitcher } from './LanguageSwitcher'
-import { TodayIcon, PeopleIcon, GraphIcon } from './NavIcons'
+import { TodayIcon, PeopleIcon, GraphIcon, SettingsIcon } from './NavIcons'
 
 interface NavItem {
   to: string
@@ -27,6 +27,7 @@ const NAV: NavItem[] = [
   { to: '/', labelKey: 'nav.today', icon: TodayIcon, end: true },
   { to: '/people', labelKey: 'nav.people', icon: PeopleIcon },
   { to: '/graph', labelKey: 'nav.graph', icon: GraphIcon },
+  { to: '/settings', labelKey: 'nav.settings', icon: SettingsIcon },
 ]
 
 function navClass({ isActive }: { isActive: boolean }): string {

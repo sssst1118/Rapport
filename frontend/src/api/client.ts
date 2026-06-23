@@ -18,6 +18,8 @@ import type {
   PersonUtterance,
   RelabelResult,
   ReviewScope,
+  Settings,
+  SettingsUpdate,
   Status,
 } from './types'
 
@@ -186,3 +188,12 @@ export const review = (scope: ReviewScope, id?: number) =>
     method: 'POST',
     body: { scope, id },
   })
+
+/* —— 设置（语言模型配置，落 config.json）—— */
+export const getSettings = (signal?: AbortSignal) =>
+  request<Settings>('/settings', { signal })
+
+/** 保存设置；返回更新后的有效设置（供前端刷新回显）。
+ *  anthropic_api_key 留空表示不改已存的 key（不会被抹掉）。 */
+export const saveSettings = (input: SettingsUpdate) =>
+  request<Settings>('/settings', { method: 'POST', body: input })

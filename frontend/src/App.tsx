@@ -9,6 +9,7 @@ import { ConversationPage } from './pages/ConversationPage'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { GraphPage } from './pages/GraphPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { StyleguidePage } from './pages/StyleguidePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/people/:id" element={<PersonPage />} />
           <Route path="/graph" element={<GraphPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/styleguide" element={<StyleguidePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

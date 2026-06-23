@@ -1,6 +1,6 @@
 {
   "brand": { "tagline": "Margin & Record" },
-  "nav": { "today": "Today", "people": "People", "graph": "Graph", "styleguide": "Style guide", "home": "Rapport home", "main": "Main navigation" },
+  "nav": { "today": "Today", "people": "People", "graph": "Graph", "settings": "Settings", "styleguide": "Style guide", "home": "Rapport home", "main": "Main navigation" },
   "lang": { "label": "Language" },
   "recording": {
     "live": "Recording",

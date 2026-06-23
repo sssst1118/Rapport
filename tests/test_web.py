@@ -332,6 +332,170 @@ def test_划选分析未配置时needs_setup(seeded) -> None:
     _assert_needs_setup(r.json())
 
 
+# ---- 设置页端点（M5.5 Task 3）：读写语言模型配置，落 config.json ---------
+#
+# 这组端点与 db 数据无关，只读写 data_root()/config.json。测试统一把
+# _frozen.data_root() monkeypatch 到 tmp_path，于是 save_config / _load_config_file /
+# anthropic_api_key 全部落在 tmp，绝不污染真用户配置；并清掉相关环境变量，
+# 让「有效值」由 config.json（或默认）决定，断言可控。
+
+
+@pytest.fixture
+def settings_client(tmp_path, monkeypatch):
+    """把配置层 data_root 指向 tmp，并清环境变量，返回一个最小 app 的 TestClient。
+
+    config.py 内部经 ``_frozen.data_root()`` 定位 config.json，monkeypatch 它即可把
+    读写都关进 tmp。清掉 RAPPORT_LLM_PROVIDER/RAPPORT_LLM_MODEL/ANTHROPIC_API_KEY，
+    避免宿主环境串味（否则 env_overrides 会非空、有效值被环境盖掉）。
+    """
+    from rapport import _frozen
+
+    monkeypatch.setattr(_frozen, "data_root", lambda: tmp_path)
+    monkeypatch.delenv("RAPPORT_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("RAPPORT_LLM_MODEL", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    app = create_app(db_path=tmp_path / "rapport.db", repo_root=tmp_path)
+    client = TestClient(app)
+    yield client, tmp_path
+    # config.json 落在 tmp_path，随 tmp 夹具自动清理，无需手动删。
+
+
+def test_设置默认未配置时回显none且无key(settings_client) -> None:
+    """无 config.json、无环境变量：provider=none、默认模型、has_api_key=false、无覆盖。"""
+    client, _ = settings_client
+    r = client.get("/api/settings")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["llm_provider"] == "none"
+    assert body["llm_model"] == "claude-opus-4-8"  # config.LLM_MODEL 默认
+    assert body["has_api_key"] is False
+    assert body["env_overrides"] == []
+    # 绝不回显明文 key：响应里不应出现任何 *_api_key 字段
+    assert "anthropic_api_key" not in body
+    assert "api_key" not in body
+
+
+def test_保存设置后GET反映持久化(settings_client) -> None:
+    """POST 改 provider/model 后，GET 立即反映（写进 config.json、热读）。"""
+    client, root = settings_client
+    r = client.post(
+        "/api/settings",
+        json={"llm_provider": "ollama", "llm_model": "qwen2.5:7b-instruct"},
+    )
+    assert r.status_code == 200
+    # POST 返回与 GET 同款结构
+    assert r.json()["llm_provider"] == "ollama"
+    assert r.json()["llm_model"] == "qwen2.5:7b-instruct"
+    # 再 GET 确认持久化
+    g = client.get("/api/settings").json()
+    assert g["llm_provider"] == "ollama"
+    assert g["llm_model"] == "qwen2.5:7b-instruct"
+    # 确实写进了 config.json 文件
+    import json
+
+    saved = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    assert saved["llm_provider"] == "ollama"
+    assert saved["llm_model"] == "qwen2.5:7b-instruct"
+
+
+def test_保存anthropic_key后has_api_key为真但不回显明文(settings_client) -> None:
+    """带 key 保存后 has_api_key=true；GET/POST 响应都不回显明文 key。"""
+    client, root = settings_client
+    r = client.post(
+        "/api/settings",
+        json={
+            "llm_provider": "anthropic",
+            "llm_model": "claude-opus-4-8",
+            "anthropic_api_key": "sk-ant-secret-xyz",
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["llm_provider"] == "anthropic"
+    assert body["has_api_key"] is True
+    # 响应体里绝不出现明文 key
+    assert "sk-ant-secret-xyz" not in r.text
+    # GET 同样不回显
+    g = client.get("/api/settings")
+    assert g.json()["has_api_key"] is True
+    assert "sk-ant-secret-xyz" not in g.text
+
+
+def test_空key不覆盖已存key(settings_client) -> None:
+    """先存 key，再发空串/省略 key 的保存：已存的 key 不被清掉。"""
+    client, root = settings_client
+    # 先存一个 key
+    client.post(
+        "/api/settings",
+        json={"llm_provider": "anthropic", "anthropic_api_key": "sk-ant-keep-me"},
+    )
+    # 空串 key 的保存（只改 model）
+    r = client.post(
+        "/api/settings",
+        json={
+            "llm_provider": "anthropic",
+            "llm_model": "claude-haiku-4-5",
+            "anthropic_api_key": "",
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["has_api_key"] is True  # 仍在
+    # config.json 里的 key 仍是原值，未被空串覆盖
+    import json
+
+    saved = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    assert saved["anthropic_api_key"] == "sk-ant-keep-me"
+    assert saved["llm_model"] == "claude-haiku-4-5"  # model 确实更新了
+
+    # 完全省略 key 字段的保存：同样不覆盖
+    r2 = client.post(
+        "/api/settings", json={"llm_provider": "anthropic", "llm_model": "x"}
+    )
+    assert r2.status_code == 200
+    assert r2.json()["has_api_key"] is True
+    saved2 = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    assert saved2["anthropic_api_key"] == "sk-ant-keep-me"
+
+
+def test_环境变量覆盖时env_overrides列出且回显有效值(tmp_path, monkeypatch) -> None:
+    """环境变量设了 provider/key：env_overrides 列出对应项，有效值取环境值。"""
+    from rapport import _frozen
+
+    monkeypatch.setattr(_frozen, "data_root", lambda: tmp_path)
+    # config.json 里写 ollama，但环境变量把 provider 顶成 anthropic
+    monkeypatch.setenv("RAPPORT_LLM_PROVIDER", "anthropic")
+    monkeypatch.delenv("RAPPORT_LLM_MODEL", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-from-env")
+
+    from rapport import config
+
+    config.save_config({"llm_provider": "ollama"})
+
+    app = create_app(db_path=tmp_path / "rapport.db", repo_root=tmp_path)
+    client = TestClient(app)
+    body = client.get("/api/settings").json()
+    # 有效值取环境（env > file）
+    assert body["llm_provider"] == "anthropic"
+    assert body["has_api_key"] is True
+    # provider 与 key 都被环境覆盖，model 没有
+    assert "llm_provider" in body["env_overrides"]
+    assert "anthropic_api_key" in body["env_overrides"]
+    assert "llm_model" not in body["env_overrides"]
+    # 明文 env key 也不回显
+    assert "sk-ant-from-env" not in client.get("/api/settings").text
+
+
+def test_坏输入不报500给4xx(settings_client) -> None:
+    """provider 取非法值（不在 none/ollama/anthropic）→ 422，不 500。"""
+    client, _ = settings_client
+    r = client.post("/api/settings", json={"llm_provider": "gpt-9000"})
+    assert r.status_code == 422  # pydantic 校验失败
+    # 不允许的取值不应落库
+    g = client.get("/api/settings").json()
+    assert g["llm_provider"] == "none"
+
+
 # ---- 静态托管降级 -------------------------------------------------------
 
 
