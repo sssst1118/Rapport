@@ -16,6 +16,7 @@ dependencies = [
     "numpy",
     "fastapi",
     "uvicorn[standard]",
+    "mcp",
 ]
 
 [project.optional-dependencies]

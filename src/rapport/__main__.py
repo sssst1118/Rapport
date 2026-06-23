@@ -8,6 +8,7 @@
     rapport show CONV_ID             打印某对话的全部话语。
     rapport search QUERY             全文检索话语。
     rapport serve [--port 8000]      启动 FastAPI Web 后端。
+    rapport mcp                      以 stdio 启动 MCP server（暴露只读数据工具给 AI 助手）。
 
 入口函数 main 供 [project.scripts] 的 rapport=rapport.__main__:main 调用。
 重依赖（gradio / sounddevice / faster-whisper）均在各子命令内延迟触发。
@@ -155,6 +156,17 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_mcp(args: argparse.Namespace) -> int:
+    """以 stdio 启动 MCP server，把本地只读数据做成工具暴露给 AI 助手。
+
+    mcp SDK 在此延迟导入，保持与其他子命令一致的风格（未装 mcp 时其余命令不受影响）。
+    """
+    from .mcp import server
+
+    server.run()
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """构建命令行参数解析器。"""
     parser = argparse.ArgumentParser(
@@ -212,6 +224,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--reload", action="store_true", help="开发模式：代码改动自动重载"
     )
     p_serve.set_defaults(func=_cmd_serve)
+
+    p_mcp = subparsers.add_parser(
+        "mcp", help="以 stdio 启动 MCP server（暴露只读数据工具给 AI 助手）"
+    )
+    p_mcp.set_defaults(func=_cmd_mcp)
 
     return parser
 

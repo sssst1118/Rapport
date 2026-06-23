@@ -19,7 +19,6 @@ import sqlite3
 import threading
 from concurrent.futures import Future
 from contextlib import asynccontextmanager
-from itertools import combinations
 from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, TypeVar
@@ -30,6 +29,7 @@ from pydantic import BaseModel
 
 from ..analysis import AnalysisError, get_provider
 from ..analysis import analyze as _analyze
+from ..mcp.tools import build_graph
 from ..storage.db import Database
 
 # 仓库根：本文件位于 src/rapport/web/app.py，上溯四级父目录。
@@ -563,30 +563,11 @@ def create_app(
         连线权重 = 两人共同在场的对话数；每个节点带话语数/对话数，供前端按互动量
         定节点大小、按连线粗细表达亲密/新近。这是从真实记录里「白捡」的关系，
         不是模型脑补——属事实层。
+
+        构图逻辑下沉到 rapport.mcp.tools.build_graph，与 MCP relationship_graph 工具共享
+        （build_graph 只调用只读方法，经 _DbProxy 照样可用），避免 web 与 mcp 两处重复。
         """
-        nodes = []
-        for p in db.list_persons():
-            utts = db.get_utterances_for_person(p["id"])
-            conv_ids = {u["conversation_id"] for u in utts}
-            nodes.append(
-                {
-                    "id": p["id"],
-                    "name": p["name"],
-                    "relation": p["relation"],
-                    "utterance_count": len(utts),
-                    "conversation_count": len(conv_ids),
-                }
-            )
-        pair_weight: dict[tuple[int, int], int] = {}
-        for c in db.list_conversations():
-            ids = sorted({p["id"] for p in db.get_persons_in_conversation(c["id"])})
-            for a, b in combinations(ids, 2):
-                pair_weight[(a, b)] = pair_weight.get((a, b), 0) + 1
-        edges = [
-            {"source": a, "target": b, "weight": w}
-            for (a, b), w in pair_weight.items()
-        ]
-        return {"nodes": nodes, "edges": edges}
+        return build_graph(db)  # type: ignore[arg-type]
 
     # ---- 解读：复盘（M4 占位） ------------------------------------------
 
