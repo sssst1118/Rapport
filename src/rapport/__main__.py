@@ -226,6 +226,7 @@ def _cmd_app(args: argparse.Namespace) -> int:
         host=args.host,
         device=args.device,
         record=not args.no_record,
+        open_ui=not args.no_open,
     )
 
 
@@ -326,6 +327,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--no-record",
         action="store_true",
         help="启动时不自动录音（调试/隐私）；可在托盘菜单开始",
+    )
+    p_app.add_argument(
+        "--no-open",
+        action="store_true",
+        help="启动时不自动用浏览器打开界面（默认会打开；可用托盘菜单打开界面）",
     )
     p_app.set_defaults(func=_cmd_app)
 

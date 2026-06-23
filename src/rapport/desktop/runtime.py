@@ -103,12 +103,22 @@ def _poll_loop(icon, controller: AppController, stop_event: threading.Event) -> 
         stop_event.wait(0.3)
 
 
+def _should_open_on_launch(open_ui: bool) -> bool:
+    """启动时是否自动用浏览器打开界面。
+
+    单独抽成纯函数便于单测（run_app 整体跑真 tray 难单测）：open_ui 即结果，
+    默认 True（双击打包应用立刻可见界面、不再「隐形」），--no-open 传 False 关掉。
+    """
+    return bool(open_ui)
+
+
 def run_app(
     *,
     port: int = 8000,
     host: str = "127.0.0.1",
     device: str | None = None,
     record: bool = True,
+    open_ui: bool = True,
 ) -> int:
     """启动桌面托盘应用：serve（后台线程）+ Engine + 托盘图标（主线程 icon.run()）。
 
@@ -117,6 +127,8 @@ def run_app(
         host: 监听地址（默认 127.0.0.1，本地优先）。
         device: 录音输入设备（索引/名称/None=配置默认）。
         record: 启动即录音（always-on 本色）；False 则起来先不录（--no-record，调试/隐私）。
+        open_ui: 启动后自动用默认浏览器打开界面（默认 True，解决「启动隐形」）；
+            False（--no-open）则不弹浏览器（不想自动弹 / 将来开机自启场景）。
 
     Returns:
         进程退出码（正常 0）。
@@ -162,6 +174,12 @@ def run_app(
     else:
         print("○ 未自动录音（--no-record）。可在托盘菜单开始（暂停/继续）/退出。", flush=True)
 
+    # 启动可见：serve 已 started，自动用默认浏览器打开界面，用户立刻看到 Rapport、
+    # 不再「双击后什么都没有」。--no-open 时跳过（_should_open_on_launch 返回 False）。
+    if _should_open_on_launch(open_ui):
+        webbrowser.open(url)
+        print(f"● 界面已在浏览器打开：{url}", flush=True)
+
     try:
         icon.run()  # 阻塞，直到 on_quit → should_exit → poller 调 icon.stop()
     finally:
@@ -172,4 +190,11 @@ def run_app(
             db.close()
         except Exception:  # noqa: BLE001
             pass
-    return 0
+        # 保底强制终止：windowed 打包应用必须保证「退出」即死。即便 PortAudio/uvicorn
+        # 仍残留非守护线程（icon.run() 返回后它们可能让进程不退），os._exit(0) 直接结束
+        # 进程，用户点「退出」一定关得掉。必须放在上面所有清理之后——os._exit 跳过
+        # atexit / 缓冲刷新，此刻 DB、状态文件、serve 都已收尾，强杀是安全的。
+        import os
+
+        os._exit(0)
+    return 0  # 不可达（os._exit 已终止）；保留以满足类型签名 -> int

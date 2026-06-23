@@ -203,6 +203,23 @@ def test_menu_has_open_and_quit_items() -> None:
     assert "quit" in keys
 
 
+# ---- 启动可见：是否自动开浏览器的纯逻辑判定 ----------------------------
+
+
+def test_should_open_on_launch_true_by_default() -> None:
+    """open_ui=True（默认）→ 启动时自动开浏览器。"""
+    from rapport.desktop.runtime import _should_open_on_launch
+
+    assert _should_open_on_launch(True) is True
+
+
+def test_should_open_on_launch_false_when_disabled() -> None:
+    """open_ui=False（--no-open）→ 启动时不开浏览器。"""
+    from rapport.desktop.runtime import _should_open_on_launch
+
+    assert _should_open_on_launch(False) is False
+
+
 # ---- 可选：真 pystray 集成（未装则跳过） --------------------------------
 
 

@@ -31,6 +31,7 @@ class _假音频源:
     def __init__(self) -> None:
         self._cb = None
         self.started = False
+        self.stop_calls = 0
 
     def start(self, callback) -> None:  # noqa: ANN001
         self._cb = callback
@@ -43,6 +44,7 @@ class _假音频源:
 
     def stop(self) -> None:
         self.started = False
+        self.stop_calls += 1
         self._cb = None
 
 
@@ -330,5 +332,24 @@ def test_stop后再stop不抛错(tmp_path) -> None:
         src.emit(_silence(_SR))
         eng.stop()
         eng.stop()  # 幂等
+    finally:
+        db.close()
+
+
+def test_stop关闭音频源(tmp_path) -> None:
+    """engine.stop() 必须把音频源真正 stop()（真实路径里 = stop+close InputStream，
+    否则 PortAudio 留活线程导致打包应用「关不掉」）；且对源 stop 只调一次（幂等）。"""
+    db = Database()
+    src = _假音频源()
+    eng = _make_engine(tmp_path, db, clock=_时钟("2026-06-23"), src=src)
+    try:
+        eng.start()
+        src.emit(_voiced(_SR))
+        assert src.started is True
+        eng.stop()
+        assert src.started is False
+        assert src.stop_calls == 1
+        eng.stop()  # 幂等：第二次 stop 不再重复关源
+        assert src.stop_calls == 1
     finally:
         db.close()
