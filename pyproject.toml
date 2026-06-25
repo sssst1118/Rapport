@@ -25,6 +25,10 @@ dependencies = [
 # 语言模型后端（运行可选）：配 RAPPORT_LLM_PROVIDER=anthropic 时才需要。
 # 测试只用内置 fake provider，不 import anthropic。
 anthropic = ["anthropic"]
+# 真·多说话人分离（运行可选、~GB）：配 RAPPORT_DIARIZER=pyannote 时才需要。
+# 预训练模型还需接受 HuggingFace license + 配 HF token（见 README）。
+# 测试用纯对齐算法 + importorskip 保护，不 import torch/pyannote。
+diarize = ["pyannote.audio", "torch", "torchaudio"]
 
 [project.scripts]
 rapport = "rapport.__main__:main"

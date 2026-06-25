@@ -22,6 +22,12 @@ def get_diarizer() -> Diarizer:
         from .single_speaker import SingleSpeakerDiarizer
 
         return SingleSpeakerDiarizer()
+    if DIARIZER == "pyannote":
+        # 延迟导入：未装可选依赖 pyannote.audio 时，整包 import 仍正常，
+        # 只有真正选用 pyannote 时才尝试加载（构造内未装则抛带指引的 ImportError）。
+        from .pyannote_diarizer import PyannoteDiarizer
+
+        return PyannoteDiarizer()
     raise ValueError(f"不支持的 DIARIZER 取值：{DIARIZER!r}")
 
 

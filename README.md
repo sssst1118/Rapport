@@ -181,6 +181,36 @@ RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small
 RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU (needs CUDA runtime libs)
 ```
 
+### Speaker diarization (multi-speaker, optional)
+
+By default Rapport labels every line as speaker **`A`** (single-speaker placeholder). To
+tell speakers apart (**`A` / `B` / `C` …**) within a recording, enable the optional
+`pyannote` diarizer:
+
+```bash
+pip install -e ".[diarize]"   # installs pyannote.audio + torch (~GB)
+```
+
+Pyannote's pretrained models are gated on Hugging Face — accept the model license once and
+provide a token:
+
+```bash
+RAPPORT_DIARIZER=pyannote HUGGINGFACE_TOKEN=hf_... rapport ingest audio.wav
+```
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `RAPPORT_DIARIZER` | `single` (placeholder, all `A`) or `pyannote` | `single` |
+| `RAPPORT_PYANNOTE_MODEL` | model name or local checkpoint path (point to a downloaded checkpoint to run offline) | `pyannote/speaker-diarization-3.1` |
+| `HUGGINGFACE_TOKEN` / `HF_TOKEN` | Hugging Face access token (accept the model license first) | — |
+
+**Known limitation — labels are consistent only within one diarize call.** `A` / `B` / `C`
+are stable across a single `rapport ingest <file>` (or one always-on batch), but **not**
+across different recordings/days: pyannote independently emits `SPEAKER_xx` each run, so the
+same person may be `B` today and `A` tomorrow. Recognizing the same person across
+conversations requires voice-embedding (a later milestone) and is **not** done here. Use the
+relabel-speaker feature to map labels to people per conversation.
+
 ### Known limitations (M5 packaging, current state)
 
 - **In-app settings page is live**: click the gear icon (top/side bar) to configure the language model provider, model name, and API key directly in the UI — no env vars needed. Settings persist to `%LOCALAPPDATA%\Rapport\config.json`. Environment variables still work and take priority over the config file.
