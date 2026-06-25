@@ -229,6 +229,9 @@ relabel-speaker feature to map labels to people per conversation.
   - [x] **Always-on background recording** ✅ — `rapport watch` runs as a standalone daemon: continuously captures the microphone → splits on silence into utterances → transcribes → diarizes → stores; conversations are **bucketed by calendar day** (time-axis only, no semantic segmentation); audio is written to a rolling day-WAV with per-utterance byte offsets so every line is 🔊 replayable; `/api/status` honestly reflects recording/paused state (the frontend red dot is real); pause = capture fully stops (privacy-first — no hidden recording); all data stays on-device
   - [x] **Windows `.exe` packaging** ✅ — PyInstaller onedir build + NSIS installer (`RapportSetup.exe`); system-tray resident app (tray menu: start/pause recording, open UI, quit; icon color = always-visible recording indicator); single process orchestrates the local web UI (serve) + always-on recording Engine; frozen-mode user data lands in `%LOCALAPPDATA%\Rapport`; optional launch-at-startup (unchecked by default — privacy-respecting); uninstall preserves user data. *Note: Whisper model not bundled — first transcription downloads it on demand; binary not code-signed — SmartScreen may prompt on first run.*
 - [ ] **M6** — Voiceprint ID · macOS
+  - [x] Multi-speaker diarization (pyannote optional dep; distinguishes A/B/C within a single diarize call; cross-conversation identity = voiceprint, later milestone) ✅
+  - [ ] Voiceprint ID (recognize the same person across conversations, requires voice embedding)
+  - [ ] macOS support
 
 ## License
 

@@ -181,6 +181,28 @@ RAPPORT_WHISPER_MODEL=small rapport transcribe audio.wav   # tiny | base | small
 RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU（需 CUDA 运行库）
 ```
 
+### 说话人分离（多说话人，可选）
+
+默认情况下，Rapport 把每一行都标记为说话人 **`A`**（单说话人占位符）。若要在同一段录音里区分 **`A` / `B` / `C` …**，可启用可选的 `pyannote` 分离器：
+
+```bash
+pip install -e ".[diarize]"   # 安装 pyannote.audio + torch（约 GB 级）
+```
+
+pyannote 的预训练模型在 Hugging Face 上设有访问限制——需先在 HF 接受模型 license，再提供访问 token：
+
+```bash
+RAPPORT_DIARIZER=pyannote HUGGINGFACE_TOKEN=hf_... rapport ingest audio.wav
+```
+
+| 环境变量 | 作用 | 默认值 |
+| --- | --- | --- |
+| `RAPPORT_DIARIZER` | `single`（占位符，全标 `A`）或 `pyannote` | `single` |
+| `RAPPORT_PYANNOTE_MODEL` | 模型名或本地 checkpoint 路径（指定本地 checkpoint 可离线运行） | `pyannote/speaker-diarization-3.1` |
+| `HUGGINGFACE_TOKEN` / `HF_TOKEN` | Hugging Face 访问 token（需先在 HF 接受模型 license） | — |
+
+**已知限制——标签仅在单次 diarize 调用内保证一致。** `A` / `B` / `C` 在同一次 `rapport ingest <file>`（或一次常驻批次）内是稳定的，但**跨不同录音/跨天不保证同一人对应同一标签**：pyannote 每次运行都独立输出 `SPEAKER_xx`，同一个人今天可能是 `B`、明天变成 `A`。跨对话认出同一个人需要声纹 embedding（后置里程碑），本步不做。用 relabel-speaker 功能在每段对话里把标签手动映射到具体的人。
+
 ### 已知限制（M5 打包现状）
 
 - **打包应用已内置「设置」页**：点顶栏/侧栏齿轮图标，直接在界面内配语言模型后端、模型名和 API Key，保存即生效，持久化到 `%LOCALAPPDATA%\Rapport\config.json`。环境变量仍可使用，且优先级高于 config.json。
@@ -199,6 +221,9 @@ RAPPORT_WHISPER_DEVICE=cuda  rapport transcribe audio.wav   # GPU（需 CUDA 运
   - [x] **常驻 always-on 后台录音** ✅ —— `rapport watch` 作为独立守护进程运行：持续采集麦克风 → 按静音切句（utterance）→ 转写 → 说话人分离 → 入库；**按自然日分桶成对话**（纯时间轴组织，不做语义对话切分）；音频写滚动 day-WAV、每句带 day-WAV 内字节偏移以保 🔊 可回放；`/api/status` 诚实反映录制/暂停状态（前端红点变真）；暂停 = 完全停止采集（隐私优先、绝不隐蔽采集）；数据全程本地
   - [x] **Windows `.exe` 打包** ✅ —— PyInstaller onedir 产物 + NSIS 安装器（`RapportSetup.exe`）；系统托盘常驻应用（托盘菜单：开始/暂停录音、打开界面、退出；图标颜色 = 持续可见的录制指示）；单进程内编排本地 web 界面（serve）+ 常驻录音 Engine；冻结态用户数据落 `%LOCALAPPDATA%\Rapport`；可选开机自启（默认不勾，尊重隐私）；卸载保留用户数据。*注：未打包 whisper 模型，首次转写需联网下载；未代码签名，首次运行 SmartScreen 可能提示。*
 - [ ] **M6** —— 声纹识别 · macOS
+  - [x] 多说话人分离（pyannote 可选依赖；单次 diarize 调用内区分 A/B/C；跨对话认人=声纹，后置）✅
+  - [ ] 声纹识别（跨对话认出同一人，需声纹 embedding）
+  - [ ] macOS 支持
 
 ## 许可证
 
