@@ -207,6 +207,13 @@ class SettingsUpdate(BaseModel):
     llm_provider: Literal["none", "ollama", "anthropic"] | None = None
     llm_model: str | None = None
     anthropic_api_key: str | None = None
+    # 语音转写（whisper）：用 Literal 限定档位/设备，坏值由 pydantic 直接挡成 422，
+    # 端点逻辑不必再校验、也就绝不 500。改动经 config.json 持久化，转写器启动时
+    # 构造，故下次启动生效（UI 会如实提示）。
+    whisper_model: (
+        Literal["tiny", "base", "small", "medium", "large-v3"] | None
+    ) = None
+    whisper_device: Literal["cpu", "cuda", "auto"] | None = None
 
 
 # ---- 解读信封（M4） -----------------------------------------------------
@@ -306,6 +313,8 @@ _SETTINGS_ENV: dict[str, str] = {
     "llm_provider": "RAPPORT_LLM_PROVIDER",
     "llm_model": "RAPPORT_LLM_MODEL",
     "anthropic_api_key": "ANTHROPIC_API_KEY",
+    "whisper_model": "RAPPORT_WHISPER_MODEL",
+    "whisper_device": "RAPPORT_WHISPER_DEVICE",
 }
 
 
@@ -325,6 +334,15 @@ def _settings_payload() -> dict[str, Any]:
         "llm_provider": config.LLM_PROVIDER,
         "llm_model": config.LLM_MODEL,
         "has_api_key": config.anthropic_api_key() is not None,
+        # whisper_model/device 是 config.py 的 import 期常量（引擎启动时构造用），
+        # 不能直接读 config.WHISPER_MODEL（不反映本进程内 POST 的写入）。改用
+        # _setting 当场新鲜解析（env > config.json > 默认），让 POST 后 GET 即反映。
+        "whisper_model": config._setting(
+            "WHISPER_MODEL", "whisper_model", "base"
+        ),
+        "whisper_device": config._setting(
+            "WHISPER_DEVICE", "whisper_device", "cpu"
+        ),
         "env_overrides": overrides,
     }
 
@@ -685,6 +703,11 @@ def create_app(
         # 仅当传入非空 key 才写；空串/缺省都不覆盖已存 key
         if body.anthropic_api_key:
             updates["anthropic_api_key"] = body.anthropic_api_key
+        # 语音转写：缺省（None）表示不动该项；取值已由 pydantic Literal 挡过坏值
+        if body.whisper_model is not None:
+            updates["whisper_model"] = body.whisper_model
+        if body.whisper_device is not None:
+            updates["whisper_device"] = body.whisper_device
         if updates:
             config.save_config(updates)
         return _settings_payload()

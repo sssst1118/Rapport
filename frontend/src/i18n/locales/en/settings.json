@@ -3,7 +3,9 @@
   "description": "Configure the language model used for readings — right here, no environment variables or config files needed.",
   "section": {
     "llm": "Language model",
-    "llmHint": "It powers the reading layer (conversation recaps, people analysis, reviews). Leave it off to keep only the factual record, with no readings."
+    "llmHint": "It powers the reading layer (conversation recaps, people analysis, reviews). Leave it off to keep only the factual record, with no readings.",
+    "whisper": "Speech-to-text",
+    "whisperHint": "The local model that turns recordings into text — the source of the factual record. Nothing leaves your machine."
   },
   "provider": {
     "label": "Provider",
@@ -25,6 +27,23 @@
     "placeholderUnset": "sk-ant-…",
     "hint": "Stored only on this machine, in plain text in config.json; sent over local loopback."
   },
+  "whisperModel": {
+    "label": "Model size",
+    "hint": "Larger is more accurate but slower and heavier; small or medium is a good pick for Chinese.",
+    "tiny": "tiny (fastest, lightest)",
+    "base": "base (balanced, default)",
+    "small": "small (more accurate)",
+    "medium": "medium (high accuracy)",
+    "large-v3": "large-v3 (most accurate, slowest)"
+  },
+  "whisperDevice": {
+    "label": "Device",
+    "hint": "cpu runs anywhere; cuda needs an NVIDIA GPU with CUDA; auto tries cuda and falls back to cpu.",
+    "cpu": "CPU (default, no GPU needed)",
+    "cuda": "CUDA (NVIDIA GPU)",
+    "auto": "Auto (try CUDA, fall back to CPU)"
+  },
+  "whisperRestartHint": "Transcription model changes take effect on next launch (the transcriber is built at startup, not hot-reloaded).",
   "envOverride": "Overridden by an environment variable; changes here won't take effect.",
   "save": "Save",
   "saving": "Saving…",

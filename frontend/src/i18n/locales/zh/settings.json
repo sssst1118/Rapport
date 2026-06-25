@@ -3,7 +3,9 @@
   "description": "配置用于解读的语言模型 —— 改这里即可，不必碰环境变量或配置文件。",
   "section": {
     "llm": "语言模型",
-    "llmHint": "解读层（对话小结、人物分析、复盘）由它生成；不配则只保留事实记录、不做解读。"
+    "llmHint": "解读层（对话小结、人物分析、复盘）由它生成；不配则只保留事实记录、不做解读。",
+    "whisper": "语音转写",
+    "whisperHint": "把录音转成文字的本地模型，是事实记录的来源；不经任何云端。"
   },
   "provider": {
     "label": "后端",
@@ -25,6 +27,23 @@
     "placeholderUnset": "sk-ant-…",
     "hint": "仅存在本机、明文写入 config.json；经本地回环传输。"
   },
+  "whisperModel": {
+    "label": "模型大小",
+    "hint": "越大越准、也越慢越占内存；中文对话建议 small 或 medium。",
+    "tiny": "tiny（最快，最省）",
+    "base": "base（均衡，默认）",
+    "small": "small（更准，推荐中文）",
+    "medium": "medium（高准确）",
+    "large-v3": "large-v3（最准，最慢）"
+  },
+  "whisperDevice": {
+    "label": "运行设备",
+    "hint": "cpu 处处能跑；cuda 需 NVIDIA 显卡与 CUDA；auto 先试 cuda、失败回退 cpu。",
+    "cpu": "CPU（默认，无需显卡）",
+    "cuda": "CUDA（NVIDIA 显卡）",
+    "auto": "自动（试探 CUDA，失败回退 CPU）"
+  },
+  "whisperRestartHint": "转写模型改动下次启动生效（转写器在启动时构造，不热更新）。",
   "envOverride": "当前被环境变量覆盖，改这里不生效。",
   "save": "保存",
   "saving": "正在保存…",

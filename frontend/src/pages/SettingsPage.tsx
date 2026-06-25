@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { LlmProvider } from '../api/types'
+import type { LlmProvider, WhisperDevice, WhisperModel } from '../api/types'
 import { getSettings, saveSettings } from '../api/client'
 import { useAsync } from '../lib/useAsync'
 import { PageHeader } from '../components/PageHeader'
@@ -21,6 +21,14 @@ import { Button } from '../components/Button'
 import { LoadingBlock, ErrorState } from '../components/states'
 
 const PROVIDERS: LlmProvider[] = ['none', 'ollama', 'anthropic']
+const WHISPER_MODELS: WhisperModel[] = [
+  'tiny',
+  'base',
+  'small',
+  'medium',
+  'large-v3',
+]
+const WHISPER_DEVICES: WhisperDevice[] = ['cpu', 'cuda', 'auto']
 
 /** 表单输入统一样式（与 PersonCreateDialog 等现有表单一致）。 */
 const FIELD =
@@ -45,6 +53,8 @@ export function SettingsPage() {
   const [provider, setProvider] = useState<LlmProvider>('none')
   const [model, setModel] = useState('')
   const [apiKey, setApiKey] = useState('')
+  const [whisperModel, setWhisperModel] = useState<WhisperModel>('base')
+  const [whisperDevice, setWhisperDevice] = useState<WhisperDevice>('cpu')
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -55,12 +65,16 @@ export function SettingsPage() {
     setProvider(data.llm_provider)
     setModel(data.llm_model)
     setApiKey('')
+    setWhisperModel(data.whisper_model)
+    setWhisperDevice(data.whisper_device)
   }, [data])
 
   const overrides = data?.env_overrides ?? []
   const providerOverridden = overrides.includes('llm_provider')
   const modelOverridden = overrides.includes('llm_model')
   const keyOverridden = overrides.includes('anthropic_api_key')
+  const whisperModelOverridden = overrides.includes('whisper_model')
+  const whisperDeviceOverridden = overrides.includes('whisper_device')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -73,6 +87,8 @@ export function SettingsPage() {
         llm_model: model.trim(),
         // 留空 = 不改已存 key；非空才提交（后端同样把空串视作不覆盖）。
         ...(apiKey.trim() ? { anthropic_api_key: apiKey.trim() } : {}),
+        whisper_model: whisperModel,
+        whisper_device: whisperDevice,
       })
       setSaved(true)
       setApiKey('')
@@ -172,6 +188,71 @@ export function SettingsPage() {
               <EnvOverrideNote show={keyOverridden} />
             </label>
           )}
+
+          {/* —— 语音转写卡片：与语言模型同卡内分区，沿用同一表单风格 —— */}
+          <div className="mt-6 border-t border-line pt-6">
+            <h2 className="font-record text-lg font-semibold text-ink">
+              {t('section.whisper')}
+            </h2>
+            <p className="mb-5 mt-1 font-ui text-sm text-ink-soft">
+              {t('section.whisperHint')}
+            </p>
+
+            {/* 模型大小下拉 */}
+            <label className="mb-4 block">
+              <span className="mb-1 block font-ui text-xs font-medium text-ink-soft">
+                {t('whisperModel.label')}
+              </span>
+              <select
+                value={whisperModel}
+                onChange={(e) => {
+                  setWhisperModel(e.target.value as WhisperModel)
+                  setSaved(false)
+                }}
+                className={FIELD}
+              >
+                {WHISPER_MODELS.map((m) => (
+                  <option key={m} value={m}>
+                    {t(`whisperModel.${m}`)}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 font-ui text-xs text-ink-soft/80">
+                {t('whisperModel.hint')}
+              </p>
+              <EnvOverrideNote show={whisperModelOverridden} />
+            </label>
+
+            {/* 运行设备下拉 */}
+            <label className="mb-4 block">
+              <span className="mb-1 block font-ui text-xs font-medium text-ink-soft">
+                {t('whisperDevice.label')}
+              </span>
+              <select
+                value={whisperDevice}
+                onChange={(e) => {
+                  setWhisperDevice(e.target.value as WhisperDevice)
+                  setSaved(false)
+                }}
+                className={FIELD}
+              >
+                {WHISPER_DEVICES.map((d) => (
+                  <option key={d} value={d}>
+                    {t(`whisperDevice.${d}`)}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 font-ui text-xs text-ink-soft/80">
+                {t('whisperDevice.hint')}
+              </p>
+              <EnvOverrideNote show={whisperDeviceOverridden} />
+            </label>
+
+            {/* 与 LLM 的「立即生效」区分：转写器启动时构造，改动下次启动生效 */}
+            <p className="font-ui text-xs text-iris" role="note">
+              {t('whisperRestartHint')}
+            </p>
+          </div>
 
           {/* 保存 + 反馈 */}
           <div className="mt-5 flex items-center gap-3">

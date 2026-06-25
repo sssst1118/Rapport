@@ -174,6 +174,12 @@ export type ReviewScope = 'conversation' | 'person' | 'day'
 /** 语言模型后端 */
 export type LlmProvider = 'none' | 'ollama' | 'anthropic'
 
+/** 语音转写（whisper）模型档位：越大越准越慢。 */
+export type WhisperModel = 'tiny' | 'base' | 'small' | 'medium' | 'large-v3'
+
+/** 语音转写运行设备：cpu（处处能跑）/ cuda（需 CUDA）/ auto（试探 cuda 失败回退 cpu）。 */
+export type WhisperDevice = 'cpu' | 'cuda' | 'auto'
+
 /**
  * GET /api/settings —— 当前有效的语言模型设置（供设置页回显）。
  * 安全：绝不含 key 明文，只有 has_api_key 布尔。
@@ -185,6 +191,10 @@ export interface Settings {
   llm_model: string
   /** anthropic key 是否已配置（明文绝不下发） */
   has_api_key: boolean
+  /** 当前有效的语音转写模型档位 */
+  whisper_model: WhisperModel
+  /** 当前有效的语音转写运行设备 */
+  whisper_device: WhisperDevice
   /** 被环境变量覆盖的项（改文件/界面不生效，需提示用户）。值取本对象的字段名。 */
   env_overrides: string[]
 }
@@ -197,4 +207,8 @@ export interface SettingsUpdate {
   llm_provider?: LlmProvider
   llm_model?: string
   anthropic_api_key?: string
+  /** 语音转写模型档位；改动下次启动生效。 */
+  whisper_model?: WhisperModel
+  /** 语音转写运行设备；改动下次启动生效。 */
+  whisper_device?: WhisperDevice
 }

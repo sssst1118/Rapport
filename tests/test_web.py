@@ -361,6 +361,8 @@ def settings_client(tmp_path, monkeypatch):
     monkeypatch.delenv("RAPPORT_LLM_PROVIDER", raising=False)
     monkeypatch.delenv("RAPPORT_LLM_MODEL", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("RAPPORT_WHISPER_MODEL", raising=False)
+    monkeypatch.delenv("RAPPORT_WHISPER_DEVICE", raising=False)
 
     app = create_app(db_path=tmp_path / "rapport.db", repo_root=tmp_path)
     client = TestClient(app)
@@ -378,6 +380,9 @@ def test_设置默认未配置时回显none且无key(settings_client) -> None:
     assert body["llm_model"] == "claude-opus-4-8"  # config.LLM_MODEL 默认
     assert body["has_api_key"] is False
     assert body["env_overrides"] == []
+    # 语音转写默认值（config 默认 base / cpu）
+    assert body["whisper_model"] == "base"
+    assert body["whisper_device"] == "cpu"
     # 绝不回显明文 key：响应里不应出现任何 *_api_key 字段
     assert "anthropic_api_key" not in body
     assert "api_key" not in body
@@ -501,6 +506,78 @@ def test_坏输入不报500给4xx(settings_client) -> None:
     # 不允许的取值不应落库
     g = client.get("/api/settings").json()
     assert g["llm_provider"] == "none"
+
+
+def test_保存whisper设置后GET反映并落config_json(settings_client) -> None:
+    """POST 改 whisper_model/device 后，GET 立即反映且写进 config.json。"""
+    client, root = settings_client
+    r = client.post(
+        "/api/settings",
+        json={"whisper_model": "small", "whisper_device": "cuda"},
+    )
+    assert r.status_code == 200
+    assert r.json()["whisper_model"] == "small"
+    assert r.json()["whisper_device"] == "cuda"
+    # 再 GET 确认持久化
+    g = client.get("/api/settings").json()
+    assert g["whisper_model"] == "small"
+    assert g["whisper_device"] == "cuda"
+    # 确实写进了 config.json
+    import json
+
+    saved = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    assert saved["whisper_model"] == "small"
+    assert saved["whisper_device"] == "cuda"
+
+
+def test_只改whisper不动已存llm设置(settings_client) -> None:
+    """只 POST whisper 字段时，已存的 llm 设置与 key 不被清空。"""
+    client, root = settings_client
+    client.post(
+        "/api/settings",
+        json={"llm_provider": "anthropic", "anthropic_api_key": "sk-ant-keep"},
+    )
+    r = client.post("/api/settings", json={"whisper_model": "medium"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["whisper_model"] == "medium"
+    assert body["llm_provider"] == "anthropic"  # 未被动
+    assert body["has_api_key"] is True  # key 仍在
+
+    import json
+
+    saved = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    assert saved["anthropic_api_key"] == "sk-ant-keep"
+    assert saved["whisper_model"] == "medium"
+
+
+def test_whisper坏取值不报500给4xx(settings_client) -> None:
+    """whisper_model/device 取非法值 → 422，不 500，且不落库。"""
+    client, _ = settings_client
+    r = client.post("/api/settings", json={"whisper_model": "gpt-whisper"})
+    assert r.status_code == 422
+    r2 = client.post("/api/settings", json={"whisper_device": "tpu"})
+    assert r2.status_code == 422
+    g = client.get("/api/settings").json()
+    assert g["whisper_model"] == "base"  # 默认未变
+    assert g["whisper_device"] == "cpu"
+
+
+def test_whisper环境变量覆盖时env_overrides列出(tmp_path, monkeypatch) -> None:
+    """env 设了 whisper_model/device：env_overrides 列出且有效值取环境。"""
+    from rapport import _frozen
+
+    monkeypatch.setattr(_frozen, "data_root", lambda: tmp_path)
+    monkeypatch.setenv("RAPPORT_WHISPER_MODEL", "large-v3")
+    monkeypatch.setenv("RAPPORT_WHISPER_DEVICE", "cuda")
+
+    app = create_app(db_path=tmp_path / "rapport.db", repo_root=tmp_path)
+    client = TestClient(app)
+    body = client.get("/api/settings").json()
+    assert body["whisper_model"] == "large-v3"
+    assert body["whisper_device"] == "cuda"
+    assert "whisper_model" in body["env_overrides"]
+    assert "whisper_device" in body["env_overrides"]
 
 
 # ---- 静态托管降级 -------------------------------------------------------
